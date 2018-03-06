@@ -52,7 +52,7 @@ Server listening on: https://localhost:8080
 ### Using the system
 
 Now that the server is running, anyone connected to the same LAN can access the application.
-To do so, open your chrome web browser, and navigate to https://<ipaddress>:8080
+To do so, open your chrome web browser, and navigate to https://\<ipaddress\>:8080
 To determine the IP Address that the server is running on, open a NEW command prompt on the machine running the server, and type the following command (on a Windows Machine)
 ```
 C:\FCS>ipconfig
