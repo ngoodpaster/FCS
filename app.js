@@ -27,6 +27,10 @@ server.listen(PORT, function(){
   console.log("Server listening on: https://localhost:" + PORT);
 });
 
+//var http = require('http');
+//http.createServer(app).listen(80);
+
+
 /*
 var fileServer = new(nodeStatic.Server)();
 var app = http.createServer(function(req, res) {
