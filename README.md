@@ -11,12 +11,10 @@ Follow the following instructions to download the necessary software, and instal
 ### Prerequisites
 
 1. Clone or download the repository to your local machine
-2. Download and install Node.js
-  - to see if it is properly installed, type node -v into your terminal/command prompt
-3. Download and install npm (or your preferred package manager)
-  - to see if it is properly installed, type node -v into your terminal/command prompt
-4. Navigate into the root directory of the repo on your local machine
-5. Enter the following command into your command prompt 
+1. Download and install Node.js - to see if it is properly installed, type node -v into your terminal/command prompt
+1. Download and install npm (or your preferred package manager) - to see if it is properly installed, type node -v into your terminal/command prompt
+1. Navigate into the root directory of the repo on your local machine
+1. Enter the following command into your command prompt 
 ```
 C:\FCS> installations
 ```
@@ -27,12 +25,12 @@ This will run the installations.bat batch file, downloading the correct Node.js,
 NOTE: These next few steps are VERY important!
 
 1. In order for the application to work, the server must be a secure https server, and therefore must have an SSL certificate.
-2. Navigate to the root directory and create a folder called "www_firefightercomm_com_ssl_cert"
+1. Navigate to the root directory and create a folder called "www_firefightercomm_com_ssl_cert"
 ```
 C:\FCS>mkdir www_firefightercomm_com_ssl_cert
 ```
 3. Navigate into this directory
-4. Obtain the following 3 files from your admin:
+1. Obtain the following 4 files from your admin:
   - private-key.key
   - www_firefightercomm_com.ca-bundle
   - www_firefightercomm_com.crt
