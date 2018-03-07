@@ -7,6 +7,17 @@ var nodeStatic = require('node-static');
 var http = require('http');
 var socketIO = require('socket.io');
 
+// For an express server (also need to put css and js folders into public folder)
+
+// var path = require('path');
+
+// var express = require('express');
+// var app = express();
+// app.use(express.static('public'));
+// app.get('/', function(req,res){
+//   res.sendFile(path.join(__dirname + '/index.html'));
+// });
+
 var options = {
   key: fs.readFileSync('www_firefightercomm_com_ssl_cert/private-key.key'),
   cert: fs.readFileSync('www_firefightercomm_com_ssl_cert/www_firefightercomm_com.crt')
@@ -21,14 +32,18 @@ var fileServer = new(nodeStatic.Server)();
 var server = https.createServer(options, function(req, res) {
   fileServer.serve(req, res);
 });
+
+//create the express server
+// var server = https.createServer(options,app);
  
 //Start server
 server.listen(PORT, function(){
   console.log("Server listening on: https://localhost:" + PORT);
 });
 
+//For http traffic
 //var http = require('http');
-//http.createServer(app).listen(80);
+//http.createServer(server).listen(80);
 
 
 /*
