@@ -5,3 +5,4 @@ call npm install
 call npm i express -g
 call npm install body-parser
 call npm install express-session
+call npm install cookie-parser
