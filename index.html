@@ -2,28 +2,36 @@
 <html>
 
 <head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity=""></script>
 
   <title>FCS - Firefighter Communication System</title>
 
-  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="/css/main.css" />
 
 </head>
 
 <body>
 
-  <h1>Firefighter Communication System</h1>
+  <h1>Realtime communication with WebRTC</h1>
 
   <div id="videos">
     <video id="localVideo" autoplay muted></video>
     <video id="remoteVideo" autoplay></video>
   </div>
-
+  <!--
+  Me: <input type="text" name="fireId">
+  Callee: <input type="text" name="calleeFireId">
+  -->
   <button type="button" id="callButton">Call</button>
+  <button type="button" id="callAllButton">Call All</button>
 
+  <script>
+    //var myFireId = "";
+  </script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/lib/adapter.js"></script>
-  <script src="js/main.js"></script>
-  
+  <!--  <script src="js/main.js"></script> -->
+  <script src="js/main_multiple.js"></script>
 </body>
 
 </html>
