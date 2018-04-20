@@ -1,15 +1,27 @@
 <html lang="en">
 <head>
-  <title>firefightercomm</title>
+  <title>FCS - Personnel</title>
+  
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity=""></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity=""></script>
-  <link rel="stylesheet" type="text/css" href="personel.css?version=1">
-  <script src="personel.js" type="text/javascript"></script>
+  
+  <link rel="stylesheet" type="text/css" href="/css/personnel.css?version=1">
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/lib/adapter.js"></script>
+  <script src="js/main_multiple.js" type="text/javascript"></script>
 </head>
 <body>
+		<div id="videos" style="display:none;">
+	    	<video id="localVideo" autoplay muted></video>
+		    <video id="remoteVideo" autoplay></video>
+	  	</div>
+
 		<!--class="col-md-12 col-sm-12 col-12" --> 
 		<div id="team" style="float:left; background-color:	#dadae3; height: 100%; overflow:scroll;"> 
 
@@ -19,6 +31,7 @@
 		<!-- side bar --> 
 		<!-- <span style="font-size:30px;cursor:pointer;" onclick="openNav()"> ☰ Please Select a Team Member</span> -->
 			<div id="mySidenav" class="sidenav">
+			  <span id="username" style="display:none;"></span>
 			  <div class="card hovercard">
 			  	<button type="button" class="close" aria-label="Close" onclick="closeNav()" id="close_button"> 
 			  		<span aria-hidden="true">&times;</span>
@@ -29,7 +42,7 @@
 		            <!-- http://lorempixel.com/850/280/people/9/ -->
 		        </div>
 		        <div class="useravatar">
-		            <img alt="" src="griffin.jpg">
+		            <img alt="" src="/js/griffin.jpg">
 		        </div>
 		        <div class="card-info"> <span class="card-title" id="calleeFireId"></span>
 
@@ -59,7 +72,7 @@
 		      <div class="tab-content">
 		        <div class="tab-pane fade in active" id="tab1">
 		        	 <button id="callButton" type="button" style="height: 100%; width: 100%;" class="btn btn-default">
-    					<span style="height: 100%; weight: 100%;" class="glyphicon glyphicon-phone"> Call </span> 
+    					<span style="display: table-cell; vertical-align: middle; margin: auto; height: 100%; width: 100px;" class="glyphicon glyphicon-phone"> Call </span> 
   					</button>
 		          <h3>This is tab 1</h3>
 		        </div>

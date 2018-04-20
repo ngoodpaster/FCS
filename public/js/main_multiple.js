@@ -1,7 +1,15 @@
 'use strict';
 
+var address;
+if (screen.width > 480){
+	address = "localhost";
+} else {
+	address = "172.20.72.2";
+}
+
+
 var myFireId;
-var calleeFireId = prompt("enter the callee's id", "theirId");
+var calleeFireId;// = prompt("enter the callee's id", "theirId");
 console.log("myId: " + myFireId + " ; calleeFireId: " + calleeFireId);
 
 var counter = 0; //this was used to create new html objects (appended to id to create unique id)
@@ -37,7 +45,7 @@ var sdpConstraints = {
 };
 
 
-$.get('https://localhost:8080/loadpersonnel', function(data){
+$.get('https://' + address + ':8080/loadpersonnel', function(data){
 	console.log(data);
 	myFireId = data.username;
 	var users = data.users;
@@ -86,28 +94,28 @@ function connectToServer(){
 
 //this needs to go in js code for interface
 var callButton = document.getElementById("callButton");
-callButton.addEventListener("click",callHandler);
+//callButton.addEventListener("click",callHandler);
 
 //this will tell server to set up connections with everyone
-var callAll = document.getElementById("callAllButton");
-callAll.addEventListener("click",callAllHandler);
+//var callAll = document.getElementById("callAllButton");
+//callAll.addEventListener("click",callAllHandler);
 //function will initiate the connection to the other firefighter
-function callHandler(){
+function callHandler(username){
 	//THIS IS HOW IT WILL BE
 	//var calleeId = document.getElementById("calleeFireId").innerHTML;
 
   	//THIS IS FOR TESTING PURPOSES
-  	calleeId = calleeFireId;
-  	console.log("callee Id: " + calleeId)
+  	calleeId = username;
+  	console.log("callee Id: " + calleeId);
 
 	if (!inCall){
 	  	
 	  	console.log("button clicked");
 	  	//isChannelReady = true;
 	  	inCall = true;
-	  	socket.emit("calling", {calleeFireId:calleeId});
+	  	socket.emit("calling", {calleeFireId:calleeId, callerFireId:myInfo.username});
 	} else {
-		hangup()
+		hangup();
 	}
 
 	//MOVE THIS INTO THE HANDLER FOR REMOTE STREAM ADDED/REMOVED
@@ -160,11 +168,17 @@ socket.on('join', function (data){
   	console.log(data)
   	var users = data.connectedUsers;
   	connectedClients = [];
+
+	$("#team").empty();
+	
 	for (var i = 0 ; i < users.length ; i++){
 		if (users[i].username != myFireId){
 			connectedClients[connectedClients.length] = users[i];
+			memberTemplate(users[i])
 		}
 	}
+
+
 	console.log("connected clients: " + connectedClients.length);
 	console.log(connectedClients);
 	
@@ -175,8 +189,21 @@ socket.on('join', function (data){
 
 
 socket.on('joined', function(data) {
-  console.log('joined: ' + data.room);
-  isChannelReady = true;
+  	console.log('joined: ' + data.room);
+  	isChannelReady = true;
+  	var room = data.room;
+  	console.log(data)
+  	var users = data.connectedUsers;
+  	connectedClients = [];
+
+	$("#team").empty();
+	
+	for (var i = 0 ; i < users.length ; i++){
+		if (users[i].username != myFireId){
+			connectedClients[connectedClients.length] = users[i];
+			memberTemplate(users[i])
+		}
+	}
 });
 
 socket.on('call busy', function(calleeId){
@@ -188,6 +215,7 @@ socket.on('incoming call', function(callIds, callToAll){
 	if (inCall && !callToAll){
 		socket.emit('in call', callIds);
 	} else {
+		calleeId = callIds.callerUsername;
 		
 		if (inCall){
 			hangup();
@@ -250,6 +278,14 @@ socket.on('bye', function(id){
 	if (inCall){
 		handleRemoteHangup();
 	}
+});
+
+socket.on('left',function(data){
+	if (data.fireId != myFireId){
+		$("#" + data.fireId).remove();
+	}
+
+	connectedClients = data.connectedUsers;
 });
 
 ////////////////////////////////////////////////
@@ -371,7 +407,7 @@ function maybeStart() {
 //
 
 window.onbeforeunload = function() {
-  sendMessage('bye');
+	socket.emit("leaving", myFireId);
 };
 
 /////////////////////////////////////////////////////////
@@ -485,8 +521,12 @@ function handleRemoteStreamAdded(event) {
   	remoteStream = event.stream;
 	remoteVideo.srcObject = remoteStream;
 
-	callButton.innerHTML = "End Call";	
-
+	if ($("#mySidenav").width() == 0){
+		console.log("mySidenav width = 0")
+		openNav(calleeId);
+	}
+	//callButton.innerHTML = "End Call";	
+	$("#callButton").css("background-color","red");
 /*
   var remoteStream = event.stream;
   remoteStreams.push(remoteStream);
@@ -508,7 +548,7 @@ function hangup() {
 	  	stop();
   		socket.emit('bye', calleeId);
   		calleeId = null;
-  		callButton.innerHTML = "Call";
+  		//callButton.innerHTML = "Call";
 	}
 }
 
@@ -516,15 +556,16 @@ function handleRemoteHangup() {
   console.log('Session terminated.');
   stop();
   calleeId = null;
-  callButton.innerHTML = "Call";
+  //callButton.innerHTML = "Call";
   //isInitiator = false;
 }
 
 function stop() {
-  inCall = false;
-  //isStarted = false;
-  pc.close();
-  pc = null;
+	$("#callButton").css("background-color","green");
+	inCall = false;
+  	//isStarted = false;
+  	pc.close();
+  	pc = null;
 }
 
 ///////////////////////////////////////////
@@ -607,6 +648,76 @@ function removeCN(sdpLines, mLineIndex) {
 
 
 
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+function memberTemplate(user){
+	// Here is where we will need the socketid. We will make the socket id into the 
+	// id for each member. In addition, we will have to search the database for the
+	// team member to get the relevant information for them. We can also just load all 
+	// the team data from the database and store it on the client side at the beginning so we don't have 
+	// to worry about making a bunch of calls to the database
+	var container = $("<div> </div>").addClass("circle").addClass("member").attr("id", user.username).css("border-color", getRandomColor());
+	container.append("<img src='/js/griffin.jpg' alt='firefighter' class='headshot' >")
+	var desc = $("<p> </p>").text(user.firstName);
+	container.append(desc);
+	$("#team").append(container);
+
+	$("#" + user.username).click(function(){ 
+		openNav(this.id);
+	});
+}
+
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+function openNav(username) {
+	console.log(username)
+	var user;
+	for (var i = 0 ; i < connectedClients.length ; i++){
+		if (connectedClients[i].username == username){
+			user = connectedClients[i];
+			break;
+		}
+	}
+	$("#mySidenav").css("width", "25vw");
+    $("#team").css("width", "75vw");
+    $("#username").text(username);
+    $(".card-title").text(user.firstName);
+
+	$("callButton").css({"background-color" :"green", "color":"white"});
+    
+    $("#callButton").unbind('click');
+
+    $("#callButton").click(function(){
+    	callHandler($("#username").text());
+    });
+}
+
+function closeNav() {
+    $("#mySidenav").css("width", "0");
+    $("#team").css("width", "100vw");
+    //document.getElementById("main").style.marginLeft= "0";
+    document.body.style.backgroundColor = "white";
+}
+
+
+
+
+
+
+
+
 //when a peer joins room, add their socketID to key/value array on server, have key be something specific to them (name gathered from html or something)
 //when a peer wants to set up a connection, they send name to server, server grabs socketId, and emits message along with the socketId of the socket making the call to only that socket. That client then starts the peer connection, and sends the offer to the socket that called it, sending both it's own and that sockets IDs in the message to the server.
 //THis will allow a ton of people to be inside the room, and each client can choose which socket they want to contact.
@@ -614,23 +725,7 @@ function removeCN(sdpLines, mLineIndex) {
 //timestamp and id for each conversation
 
 
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-// TODO
-
-
-//need to link with the front end -> especially the part dealing with getting the id of the firefighter you want to chat with
-//need to figure out how to end a call, and reset back to square one when that happens
-//need to re-work through the call all implementation and check if it's correct
-//MORE TESTING
-//need to test with more than two devices
+//ok so now i am getting people to load and unload when they enter/leave
 
 
 
@@ -638,12 +733,11 @@ function removeCN(sdpLines, mLineIndex) {
 
 
 
-//So I was able to get the username from the login page 
-//Now the only issue is asynchronous server calls. I need the first $.get to run all the way through before doing anything else
-//I think I need to use callbacks in order to implement this
 
-//AS A GETAROUND, I PUT ALL STANDALONE CODE INSIDE THE GET CALL SO THAT IT ALL HAPPENS WHEN IT RETURNS 
-//^ BAd practice
 
-//Also, it is being inserted into db, but when I do the load, it doesn't include it?????????????
+//NEXT TODO 
+//work on fixing up the situation when someone calls someone who is already in a call
+//implement a call all button
 
+//move on to the recording side of things
+//figure out the taking pictures side as well

@@ -53,7 +53,7 @@ app.get('/personnel', function(req,res){
   console.log(fireId)
   //res.sendFile(path.join(__dirname + '/index.html'));
   console.log("loading index.html")
-  res.sendFile(path.join(__dirname + '/index.html'));
+  res.sendFile(path.join(__dirname + '/personnel.html'));
 });
 
 
@@ -97,12 +97,21 @@ function loadUsers(){
   console.log(users)
 }
 
-function updateConnectedUsers(username){
+function addConnectedUser(username){
   for (var i = 0 ; i < users.length ; i++){
     if (users[i].username == username){
       connectedUsers[connectedUsers.length] = users[i];
       break;
     }  
+  }
+}
+
+function removeConnectedUser(username){
+  for (var i = 0 ; i < connectedUsers.length ; i++){
+    if (connectedUsers[i].username == username){
+      connectedUsers[i] = connectedUsers[connectedUsers.length - 1];
+      connectedUsers.splice(-1,1);
+    }
   }
 }
 
@@ -140,7 +149,7 @@ app.post('/validatelogin', function(req,res){
       if (result.length === 1){
         if (result[0].password === user.password){
           sess.username = user.username;
-          updateConnectedUsers(user.username);
+          addConnectedUser(user.username);
           res.end('success');
         } else {
           res.end('fail');
@@ -172,7 +181,7 @@ app.post('/createaccount', function(req,res){
   });
 
   loadUsers();
-  updateConnectedUsers(user.username);
+  addConnectedUser(user.username);
 
   sess.username = user.username;
   res.end('done');
@@ -202,7 +211,7 @@ io.sockets.on('connection', function(socket) {
     //setting callToAll variable to false tells the receiving client that this is just a 2 way connection.
     var callToAll = false;
     //send message with the socket id of who wanted to connect with it
-    io.to(callee).emit('incoming call',{'callerId':socket.id, 'calleeId':callee}, callToAll);
+    io.to(callee).emit('incoming call',{'callerUsername':message.callerFireId, 'callerId':socket.id, 'calleeId':callee}, callToAll);
   });
 
   socket.on('offer', function(sessionDescription, callIds){
@@ -233,7 +242,7 @@ io.sockets.on('connection', function(socket) {
     log('Received request to create or join room ' + room + ' from socket: ' + socket.id + ' and fireID: ' + fireId);
     // add the current socket to the map of connected sockets
     currSockets.set(fireId,socket.id);
-    //updateConnectedUsers(fireId);
+    //addConnectedUser(fireId);
     log('size of sockets array: ' + currSockets.size);
 
     var clientsInRoom = io.sockets.adapter.rooms[room];
@@ -243,14 +252,20 @@ io.sockets.on('connection', function(socket) {
     if (numClients === 0) {
       socket.join(room);
       log('Client ID ' + socket.id + ' created room ' + room);
-      socket.emit('joined', {'room':room,'socketId':socket.id});
+      socket.emit('joined', {'room':room,'connectedUsers':connectedUsers});//'socketId':socket.id});
     }else {
       log('Client ID ' + socket.id + ' joined room ' + room);
       io.sockets.in(room).emit('join', {'room':room,'connectedUsers':connectedUsers});
       socket.join(room);
-      socket.emit('joined', {'room':room,'socketId':socket.id});
+      socket.emit('joined', {'room':room,'connectedUsers':connectedUsers});//'socketId':socket.id});
       io.sockets.in(room).emit('ready');
     }
+  });
+
+  socket.on('leaving', function(fireId){
+    currSockets.delete(fireId);
+    removeConnectedUser(fireId);
+    io.sockets.in(room).emit('left',{'fireId':fireId, 'connectedUsers':connectedUsers});
   });
 
   socket.on('bye', function(calleeFireId){

@@ -15,7 +15,20 @@ $(function() {
 		e.preventDefault();
 	});
 
+	$("#login-submit").on('touchend click', function(event) {
+		event.stopPropagation();
+		event.preventDefault();
+		validate_login();
+	});
+
+	$("#register-submit").on('touchend click', function(event) {
+		event.stopPropagation();
+		event.preventDefault();
+		validate_create();
+	});
+
 });
+
 
 
 function validate_create(){
@@ -71,7 +84,7 @@ function validate_create(){
 
 	//Now we have the object, time to send it to the server
 	if (!error){ 
-		$.post( "https://localhost:8080/createaccount", obj, function(data){
+		$.post( "https://172.20.72.2:8080/createaccount", obj, function(data){
 			if (data === 'done'){
 				window.location.href = "/personnel";
 				//$.post("https://localhost:8080/personnel", obj['username']);		
@@ -102,10 +115,18 @@ function validate_login(){
 
 	console.log(obj);
 
+	var string;
+	if (screen.width > 480){
+		string = "localhost";
+	} else {
+		string = "172.20.72.2";
+	}
+
 	//Now we have the object, time to send it to the server 
 
 	if (!error){
-		$.post("https://localhost:8080/validatelogin", obj, function(data){
+		var address = "https://" + string + ":8080/validatelogin";
+		$.post(address, obj, function(data){
 			if (data === 'success'){
 				window.location.href = "/personnel";
 			} else if (data === 'fail'){
