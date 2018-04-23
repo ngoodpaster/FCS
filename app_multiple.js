@@ -235,7 +235,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('in call', function(callIds){
-    io.to(callIds.callerId).emit('callee busy',currSockets.get(callIds.calleeId));
+    io.to(callIds.callerId).emit('callee busy',currSockets.get(calleeId));
   });
 
   socket.on('create or join', function(fireId) {

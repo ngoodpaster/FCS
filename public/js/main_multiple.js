@@ -112,7 +112,8 @@ function callHandler(username){
 	  	
 	  	console.log("button clicked");
 	  	//isChannelReady = true;
-	  	inCall = true;
+	  	//cant set inCall here (in case the other client is already in a call)
+	  	//inCall = true;
 	  	socket.emit("calling", {calleeFireId:calleeId, callerFireId:myInfo.username});
 	} else {
 		hangup();
@@ -206,7 +207,7 @@ socket.on('joined', function(data) {
 	}
 });
 
-socket.on('call busy', function(calleeId){
+socket.on('callee busy', function(calleeId){
 	alert("Unfortunately, " + calleeId + " is not available at this time. Try again later.");
 });
 
@@ -237,6 +238,7 @@ socket.on('incoming call', function(callIds, callToAll){
 socket.on('incoming offer', function(remoteDescription, callIds){
 	console.log("received an offer")
 	if (remoteDescription.type === 'offer'){
+		inCall = true;
 		maybeStart();
 		//set remote streams description with the offer
     	pc.setRemoteDescription(new RTCSessionDescription(remoteDescription));
