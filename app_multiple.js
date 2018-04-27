@@ -211,7 +211,7 @@ io.sockets.on('connection', function(socket) {
     //setting callToAll variable to false tells the receiving client that this is just a 2 way connection.
     var callToAll = false;
     //send message with the socket id of who wanted to connect with it
-    io.to(callee).emit('incoming call',{'callerUsername':message.callerFireId, 'callerId':socket.id, 'calleeId':callee}, callToAll);
+    io.to(callee).emit('incoming call',{'callerUsername':message.callerFireId, 'calleeUsername':message.calleeFireId, 'callerId':socket.id, 'calleeId':callee}, callToAll);
   });
 
   socket.on('offer', function(sessionDescription, callIds){
@@ -224,18 +224,18 @@ io.sockets.on('connection', function(socket) {
     io.to(callIds.calleeId).emit('incoming answer', sessionDescription, callIds);
   });
 
-  socket.on('callAll', function(callIds){
+  socket.on('callAll', function(callerFireId){
     //call every socket
     currSockets.forEach(function(value,key,map){
       if (value != socket.id){
         var callToAll = true;
-        io.to(value).emit('incoming call',{'callerId':socket.id, 'calleeId':value}, callToAll);
+        io.to(value).emit('incoming call',{'callerUsername':callerFireId, 'calleeUsername':key, 'callerId':socket.id, 'calleeId':value}, callToAll);
       }
     });
   });
 
   socket.on('in call', function(callIds){
-    io.to(callIds.callerId).emit('callee busy',currSockets.get(calleeId));
+    io.to(callIds.callerId).emit('callee busy',callIds.calleeId);
   });
 
   socket.on('create or join', function(fireId) {
@@ -268,9 +268,9 @@ io.sockets.on('connection', function(socket) {
     io.sockets.in(room).emit('left',{'fireId':fireId, 'connectedUsers':connectedUsers});
   });
 
-  socket.on('bye', function(calleeFireId){
-    var callee = currSockets.get(calleeFireId);
-    io.to(callee).emit('bye',socket.id);
+  socket.on('bye', function(toUsername, fromUsername){
+    var callee = currSockets.get(toUsername);
+    io.to(callee).emit('bye',fromUsername);
   });
   socket.on('broadcast', function(message) {
   	// emit broadcast message to all in the room

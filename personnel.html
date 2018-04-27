@@ -14,16 +14,16 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/lib/adapter.js"></script>
-  <script src="js/main_multiple.js" type="text/javascript"></script>
 </head>
 <body>
-		<div id="videos" style="display:none;">
-	    	<video id="localVideo" autoplay muted></video>
-		    <video id="remoteVideo" autoplay></video>
+		<div id="videos" style="height:1%;">
+			<!--position: absolute !important; top: -9999px !important;left: -9999px !important;-->
+	    	<video id="localVideo" autoplay muted="muted" style="height:1px; width:1px;"></video>
+<!--		    <video id="remoteVideo" autoplay style="height:1px; width:1px;"></video> -->
 	  	</div>
 
 		<!--class="col-md-12 col-sm-12 col-12" --> 
-		<div id="team" style="float:left; background-color:	#dadae3; height: 100%; overflow:scroll;"> 
+		<div id="team" style="float:left; background-color:	#dadae3; height: 99%; overflow:scroll;"> 
 
 		</div>
 		
@@ -95,6 +95,8 @@
 		<!-- </div> -->
 
 
+  <script src="js/main_multiple.js" type="text/javascript"></script>
 		
 </body>
+
 </html>

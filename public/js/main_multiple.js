@@ -15,16 +15,19 @@ console.log("myId: " + myFireId + " ; calleeFireId: " + calleeFireId);
 var counter = 0; //this was used to create new html objects (appended to id to create unique id)
 var isChannelReady = false;
 var isInitiator = false;
-//var isStarted = false;
+var isStarted = false;
 var localStream;
-var pc;
+//var pc;
+var pcs = new Map();
 var remoteStream;
 var turnReady;
 var remoteStreams = [];
 var inCall = false;
 var connectedClients = [];
 var myInfo;
-var calleeId = null;
+//var calleeId = null;
+var muteAll = false;
+var broadcast = false;
 var pcConfig = {
   'iceServers': [{
     'urls': 'stun:stun.l.google.com:19302'
@@ -34,9 +37,13 @@ var pcConfig = {
 var socket = io.connect();;
 var room;
 
-var localVideo;
-var remoteVideo;
-var videos;
+// var localVideo;
+// var remoteVideo;
+// var videos;
+var	localVideo = document.querySelector('#localVideo');
+var	remoteVideo = document.querySelector('#remoteVideo');
+var	videos = document.getElementById("videos");
+
 
 // Set up audio and video regardless of what devices are present.
 var sdpConstraints = {
@@ -105,8 +112,8 @@ function callHandler(username){
 	//var calleeId = document.getElementById("calleeFireId").innerHTML;
 
   	//THIS IS FOR TESTING PURPOSES
-  	calleeId = username;
-  	console.log("callee Id: " + calleeId);
+  	//calleeId = username;
+  	//console.log("callee Id: " + calleeId);
 
 	if (!inCall){
 	  	
@@ -114,7 +121,7 @@ function callHandler(username){
 	  	//isChannelReady = true;
 	  	//cant set inCall here (in case the other client is already in a call)
 	  	//inCall = true;
-	  	socket.emit("calling", {calleeFireId:calleeId, callerFireId:myInfo.username});
+	  	socket.emit("calling", {calleeFireId:username, callerFireId:myInfo.username});
 	} else {
 		hangup();
 	}
@@ -131,7 +138,13 @@ function callHandler(username){
 };
 
 function callAllHandler(){
-	socket.emit('callAll');
+	muteAll = true;
+	if (!inCall){
+		socket.emit('callAll', myInfo.username);
+	} else {
+		hangup();
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -166,16 +179,17 @@ socket.on('created', function(room) {
 
 socket.on('join', function (data){
   	var room = data.room;
-  	console.log(data)
+  	console.log(data);
   	var users = data.connectedUsers;
   	connectedClients = [];
 
 	$("#team").empty();
-	
+
+	groupTemplate();
 	for (var i = 0 ; i < users.length ; i++){
 		if (users[i].username != myFireId){
 			connectedClients[connectedClients.length] = users[i];
-			memberTemplate(users[i])
+			memberTemplate(users[i]);
 		}
 	}
 
@@ -199,6 +213,7 @@ socket.on('joined', function(data) {
 
 	$("#team").empty();
 	
+	groupTemplate();
 	for (var i = 0 ; i < users.length ; i++){
 		if (users[i].username != myFireId){
 			connectedClients[connectedClients.length] = users[i];
@@ -211,21 +226,26 @@ socket.on('callee busy', function(calleeId){
 	alert("Unfortunately, " + calleeId + " is not available at this time. Try again later.");
 });
 
+//callee runs this code
 socket.on('incoming call', function(callIds, callToAll){
 	console.log("incoming call from socket: " + callIds.callerId);
 	if (inCall && !callToAll){
 		socket.emit('in call', callIds);
 	} else {
-		calleeId = callIds.callerUsername;
+		//calleeId = callIds.callerUsername;
 		
 		if (inCall){
 			hangup();
 		}
-
+		if (callToAll){
+			broadcast = true;
+		}
 		inCall = true;
-		maybeStart();
+		var pcId = callIds.callerUsername;
+		maybeStart(pcId);
 		//obtaining local session description
 		//var sessionDescription = pc.createOffer();
+		var pc = pcs.get(pcId)
 		pc.createOffer().then(function(sessionDescription){ return setLocalAndEmit(callIds, sessionDescription);}, handleCreateOfferError);
 		//pc.setLocalDescription(sessionDescription);
 	  	// console.log('set Local description to: ', sessionDescription.PromiseValue);  	
@@ -234,13 +254,15 @@ socket.on('incoming call', function(callIds, callToAll){
   	}
 });
 
-
+//caller runs this code
 socket.on('incoming offer', function(remoteDescription, callIds){
 	console.log("received an offer")
 	if (remoteDescription.type === 'offer'){
 		inCall = true;
-		maybeStart();
+		var pcId = callIds.calleeUsername;
+		maybeStart(pcId);
 		//set remote streams description with the offer
+		var pc = pcs.get(pcId)
     	pc.setRemoteDescription(new RTCSessionDescription(remoteDescription));
     	//create local description
 		// var sessionDescription = pc.createAnswer();
@@ -255,18 +277,41 @@ socket.on('incoming offer', function(remoteDescription, callIds){
 
 function setLocalAndEmit(callIds,sessionDescription){
 	console.log("callIds: " + callIds	)
+	var pcId;
+	console.log(sessionDescription.type)
+	if (sessionDescription.type == "offer"){
+		console.log("hey1");
+		pcId = callIds.callerUsername;
+	} else if (sessionDescription.type == "answer"){
+		console.log("hey2");
+		pcId = callIds.calleeUsername;
+	}
+	console.log("pcId: " + pcId);
+	console.log("pcs:");
+	console.log(pcs)
+	
+	pcs.forEach(function(value,key,map){
+		console.log("key: " + key);
+		console.log("value");
+		console.log(value);
+	});
+
+	var pc = pcs.get(pcId);
 	pc.setLocalDescription(sessionDescription);
 	console.log('set Local description to: ', sessionDescription);  	
 	console.log('setting local description of type: ' + sessionDescription.type + '\nid:');
 	socket.emit(sessionDescription.type,sessionDescription,callIds)
 }
 
+//callee runs this code
 socket.on('incoming answer', function(remoteDescription, callIds){
 	console.log("received an answer")
 	if (remoteDescription.type === 'answer'){
 		//set the remote dewcription to be the answer
 		console.log("setting remote description")
 		console.log("should call handler for remote stream")
+		var pcId = callIds.callerUsername;
+		var pc = pcs.get(pcId);
 		pc.setRemoteDescription(new RTCSessionDescription(remoteDescription));
 		//at this point the remote stream handlers should both be triggered
 	}
@@ -276,9 +321,9 @@ socket.on('log', function(array) {
   console.log.apply(console, array);
 });
 
-socket.on('bye', function(id){
+socket.on('bye', function(pcId){
 	if (inCall){
-		handleRemoteHangup();
+		handleRemoteHangup(pcId);
 	}
 });
 
@@ -297,33 +342,39 @@ function sendMessage(message) {
   socket.emit('message', message);
 }
 
-// This client receives a message
-// socket.on('message', function(message) {
-//   console.log('Client received message:', message);
-//   if (message === 'got user media') {
-//     console.log("some client got user media")
-//     maybeStart();
-//   } else if (message.type === 'offer') {
-//     if (!isInitiator && !isStarted) {
-//       maybeStart();
-//     }
-//     //received the offer, add it to the remote description
-//     //once this is called, onaddstream event is sent, and handleremotestream is called by peer who sent offer
-//     pc.setRemoteDescription(new RTCSessionDescription(message));
-//     //generate an answer
-//     doAnswer();
-//   } else if (message.type === 'answer' && isStarted) {
-//     pc.setRemoteDescription(new RTCSessionDescription(message));
-//   } else if (message.type === 'candidate' && isStarted) {
-//     var candidate = new RTCIceCandidate({
-//       sdpMLineIndex: message.label,
-//       candidate: message.candidate
-//     });
-//     pc.addIceCandidate(candidate);
-//   } else if (message === 'bye' && isStarted) {
-//     handleRemoteHangup();
-//   }
-// });
+//This client receives a message
+socket.on('message', function(message) {
+  console.log('Client received message:', message);
+  // if (message === 'got user media') {
+  //   console.log("some client got user media")
+  //   maybeStart();
+  // } else if (message.type === 'offer') {
+  //   if (!isInitiator ){//&& !isStarted) {
+  //     maybeStart();
+  //   }
+  //   //received the offer, add it to the remote description
+  //   //once this is called, onaddstream event is sent, and handleremotestream is called by peer who sent offer
+  //   pc.setRemoteDescription(new RTCSessionDescription(message));
+  //   //generate an answer
+  //   doAnswer();
+  // } else if (message.type === 'answer'){// && isStarted) {
+  //   pc.setRemoteDescription(new RTCSessionDescription(message));
+  // } else
+  if (message.type === 'candidate' && isStarted) {
+    var candidate = new RTCIceCandidate({
+      sdpMLineIndex: message.label,
+      candidate: message.candidate
+    });
+    var pcId = message.senderUsername;
+    pcs.forEach(function(value,key,map){
+    	value.addIceCandidate(candidate);
+    });
+
+  } 
+  // else if (message === 'bye'){//} && isStarted) {
+  //   handleRemoteHangup();
+  // }
+});
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -331,10 +382,6 @@ function sendMessage(message) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getLocalStream(){
-	localVideo = document.querySelector('#localVideo');
-	remoteVideo = document.querySelector('#remoteVideo');
-	videos = document.getElementById("videos");
-
 
 	console.log("about to get user media")
 	navigator.mediaDevices.getUserMedia({
@@ -389,13 +436,12 @@ if (location.hostname !== 'localhost') {
 }
 
 
-function maybeStart() {
+function maybeStart(pcId) {
   console.log('>>>>>>> maybeStart() ', localStream, isChannelReady);
   if (typeof localStream !== 'undefined' && isChannelReady) {
     console.log('>>>>>> creating peer connection');
-    createPeerConnection();
-    pc.addStream(localStream);
-    //isStarted = true;
+    createPeerConnection(pcId, localStream);
+    isStarted = true;
     // console.log('isInitiator', isInitiator);
     // if (isInitiator) {
     //   //creates and sends an offer
@@ -414,12 +460,15 @@ window.onbeforeunload = function() {
 
 /////////////////////////////////////////////////////////
 
-function createPeerConnection() {
+function createPeerConnection(pcId, localStream) {
   try {
-    pc = new RTCPeerConnection(null);
+    var pc = new RTCPeerConnection(null);
     pc.onicecandidate = handleIceCandidate;
     pc.onaddstream = handleRemoteStreamAdded;
     pc.onremovestream = handleRemoteStreamRemoved;
+    pc.addStream(localStream)
+    console.log("About to add to pcs map.....pcId: " + pcId)
+    pcs.set(pcId,pc);
     console.log('Created RTCPeerConnnection');
   } catch (e) {
     console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -435,7 +484,8 @@ function handleIceCandidate(event) {
       type: 'candidate',
       label: event.candidate.sdpMLineIndex,
       id: event.candidate.sdpMid,
-      candidate: event.candidate.candidate
+      candidate: event.candidate.candidate,
+      senderUsername: myInfo.username
     });
   } else {
     console.log('End of candidates.');
@@ -514,30 +564,59 @@ function requestTurn(turnURL) {
 //TO THE HTML DOM WHEN A REMOTE STREAM IS ADDED
 
 function handleRemoteStreamAdded(event) {
+
+	console.log("remote stream added event")
+	console.log(event)
+
+
 	console.log('handling the remote stream, and enabling the local stream')
+	console.log(localStream.getTracks())
 	localStream.getTracks()[0].enabled = true;//!localStream.getTracks()[0].enabled;
 	console.log("local stream: " + localStream.getTracks()[0].enabled)
   	document.querySelector('#localVideo').srcObject = localStream;
 
-	console.log('Remote stream added.');
-  	remoteStream = event.stream;
-	remoteVideo.srcObject = remoteStream;
+	console.log('Remote stream added:');
+	console.log(event.stream)
+	console.log('remote stream tracks')
+	console.log(event.stream.getTracks())
+	console.log("remote stream: " + event.stream.getTracks()[0].enabled)
+  	
+	remoteStream = event.stream;
+	remoteStreams.push(remoteStream);
+  	var video = document.createElement("video");
+  	video.id = "remoteVideo" + counter++;
+  	video.srcObject = remoteStream;
+  	video.setAttribute("autoplay","");	
+
+  	if (muteAll){
+  		video.setAttribute("muted","muted")
+  	}
+
+  	videos.appendChild(video);
+	
 
 	if ($("#mySidenav").width() == 0){
 		console.log("mySidenav width = 0")
-		openNav(calleeId);
+		var pcIter = pcs.keys();
+		var pcId = pcIter.next().value;
+		openNav(pcId);
 	}
-	//callButton.innerHTML = "End Call";	
+	
 	$("#callButton").css("background-color","red");
+	$("#callButton > span").html("End Call");
+
+	if (broadcast){
+		console.log("broadcasting")
+		var pcIter = pcs.keys();
+		var pcId = pcIter.next().value;
+		$(pcId + "-name").text("Broadcast From: " + pcId);
+	}
+
 /*
   var remoteStream = event.stream;
   remoteStreams.push(remoteStream);
   //remoteVideo.srcObject = remoteStream;
-  var video = document.createElement("video");
-  video.id = "remoteVideo" + counter++;
-  video.srcObject = remoteStream;
-  video.setAttribute("autoplay","");
-  videos.appendChild(video);*/
+  */
 }
 
 function handleRemoteStreamRemoved(event) {
@@ -545,29 +624,38 @@ function handleRemoteStreamRemoved(event) {
 }
 
 function hangup() {
-	if (calleeId != null){
-  		console.log('Hanging up.');
-	  	stop();
-  		socket.emit('bye', calleeId);
-  		calleeId = null;
+
+	while(pcs.size != 0){
+		var pcIter = pcs.keys();
+		var pcId = pcIter.next().value;
+		console.log('Hanging up.');
+	  	stop(pcId);
+  		socket.emit('bye', pcId, myInfo.username);
+  		//calleeId = null;
   		//callButton.innerHTML = "Call";
 	}
 }
 
-function handleRemoteHangup() {
+function handleRemoteHangup(pcId) {
   console.log('Session terminated.');
-  stop();
-  calleeId = null;
+  stop(pcId);
+  //calleeId = null;
   //callButton.innerHTML = "Call";
   //isInitiator = false;
 }
 
-function stop() {
-	$("#callButton").css("background-color","green");
-	inCall = false;
+function stop(pcId) {
   	//isStarted = false;
+  	var pc = pcs.get(pcId)
   	pc.close();
   	pc = null;
+  	pcs.delete(pcId)
+
+  	if (pcs.size == 0){
+		$("#callButton").css("background-color","green");
+		$("#callButton > span").html("Call");
+		inCall = false;
+  	}
 }
 
 ///////////////////////////////////////////
@@ -665,12 +753,24 @@ function memberTemplate(user){
 	// to worry about making a bunch of calls to the database
 	var container = $("<div> </div>").addClass("circle").addClass("member").attr("id", user.username).css("border-color", getRandomColor());
 	container.append("<img src='/js/griffin.jpg' alt='firefighter' class='headshot' >")
-	var desc = $("<p> </p>").text(user.firstName);
+	var desc = $("<p> </p>").attr("id", user.username + "-name").text(user.firstName);
 	container.append(desc);
 	$("#team").append(container);
 
 	$("#" + user.username).click(function(){ 
 		openNav(this.id);
+	});
+}
+
+function groupTemplate(){
+	var container = $("<div> </div>").addClass("circle").addClass("member").attr("id", "call-all-logo").css("border-color", "black");
+	container.append("<img src='/js/group.png' alt='firefighter' class='headshot' >")
+	var desc = $("<p> </p>").text("All");
+	container.append(desc);
+	$("#team").append(container);
+
+	$("#call-all-logo").click(function(){ 
+		openNav("callAll");
 	});
 }
 
@@ -685,25 +785,35 @@ function getRandomColor() {
 
 function openNav(username) {
 	console.log(username)
-	var user;
-	for (var i = 0 ; i < connectedClients.length ; i++){
-		if (connectedClients[i].username == username){
-			user = connectedClients[i];
-			break;
+	var user = {};
+	if (username == "callAll"){
+		user.firstName = "All Firefighters";
+	} else {
+		for (var i = 0 ; i < connectedClients.length ; i++){
+			if (connectedClients[i].username == username){
+				user = connectedClients[i];
+				break;
+			}
 		}
 	}
 	$("#mySidenav").css("width", "25vw");
     $("#team").css("width", "75vw");
     $("#username").text(username);
     $(".card-title").text(user.firstName);
-
-	$("callButton").css({"background-color" :"green", "color":"white"});
+	$("#callButton").css({"background-color" :"green", "color":"white"});
     
     $("#callButton").unbind('click');
-
-    $("#callButton").click(function(){
-    	callHandler($("#username").text());
-    });
+	
+	if (username == "callAll"){
+	    $('.userAvatar').children('img').attr('src', '/js/group.png');
+ 		$("#callButton").click(function(){
+ 			callAllHandler();
+ 		});
+	} else {
+    	$("#callButton").click(function(){
+    		callHandler($("#username").text());
+    	});
+    }
 }
 
 function closeNav() {
@@ -743,3 +853,6 @@ function closeNav() {
 
 //move on to the recording side of things
 //figure out the taking pictures side as well
+
+
+//need to have an array of all the pcs as well (I keep overwriting the pc)
