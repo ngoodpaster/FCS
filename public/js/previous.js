@@ -1,18 +1,119 @@
+var jobs;
+
+var address;
+if (screen.width == 1366){
+  address = "localhost";
+} else {
+  // address = "172.20.72.2";
+  address = "10.0.0.182";
+}
+
+function updateMedia(){
+  $("#image-gallery").empty();
+  $("#image-carousel").empty();
+  $('#accordian').empty()
+
+  var folder = $('#selected_job').val();
+  console.log('folder: ' + folder)
+  var obj = new Object();
+  obj['folder'] = folder;
+  $.post('https://' + address + ':8080/loadprevmedia', obj, function(data){
+    var filenames = data.filenames;
+    console.log(filenames);
+    var picCount = 0;
+    for(var i = 0; i < filenames.length ; i ++){
+    
+      if (filenames[i].endsWith('.png')){
+        carouselTemplate(picCount,'https://' + address + ':8080/media_files/' + folder + '/' + filenames[i]);
+        picCount++;
+      } else if (filenames[i].endsWith('.webm')){
+        videoTemplate('https://' + address + ':8080/media_files/' + folder + '/' + filenames[i]);
+      }
+    }
+    
+    if (picCount == 0){
+      carouselTemplate(0,'http://placehold.it/470x480&text=No%20Media');
+    }
+  });  
+
+  $.post('https://' + address + ':8080/loadprevconvos', obj, function(data){
+    console.log('convo data')
+    console.log(data)
+    var convoFiles = data.filenames;
+
+    var src1,src2,src1details,src2details;
+    var tempConvoFiles = convoFiles;
+    var convoCount = 0;
+    
+    console.log(tempConvoFiles.length)
+
+    while (tempConvoFiles.length != 0){
+      src1 = tempConvoFiles.pop()
+      src1details = src1.split('_');
+      for (var i = 0 ; i < tempConvoFiles.length; i++){
+        src2 = tempConvoFiles[i];
+        src2details = src2.split('_');
+        if (src1details[2] == src2details[2] && src2details[0] == src1details[1] && src1details[0] == src2details[1]){
+          tempConvoFiles[i] == tempConvoFiles[tempConvoFiles.length - 1]
+          tempConvoFiles.pop();
+          conversationTemplate(src1,src2, convoCount++)
+          break;
+        }
+      } 
+    }
+  
+  });
+}
+
+
+
+
 $(document).ready(function($) {
- 
+
+
+        
+        $.get('https://' + address + ':8080/loadpreviousjobs', function(data){
+          console.log(data);
+          jobs = data.filenames;
+          loadjobs(jobs);
+          updateMedia();
+          // mediaFolders = data.mediaFolders; 
+          // mediaFiles = data.mediaFiles;
+        });
+});
+
+function loadjobs(jobs){
+        console.log(jobs)
+        console.log()
+        for (var i = 0 ; i < jobs.length ; i++){
+          jobTemplate(jobs[i]);
+        }
+
+
         $('#myCarousel').carousel({
-                interval: 5000
+            interval:5000
         });
 
-        for(var i = 0; i < 10; i ++){
-            if(i == 0){
-                carouselTemplate(i, "http://placehold.it/470x480&text=zero");
-            } else { 
-                carouselTemplate(i, "http://placehold.it/470x480&text=" + i);
-            }
-            conversationTemplate(src1, src2, i);
-        }
- 
+        // var src1,src2,src1details,src2details;
+        // var tempConvoFiles = convoFiles;
+        // var convoCount = 0;
+        
+        // while (!tempConvoFiles.empty()){
+        //   src1 = tempConvoFiles.pop()
+        //   src1details = src1.split('_');
+        //   for (var i = 0 ; i < tempConvoFiles.length; i++){
+        //     src2 = tempConvoFiles[i];
+        //     src2details = src2.split('_');
+        //     if (src1details[2] == src2details[2] && src2details[0] == src1details[1] && src1details[0] == src2details[1]){
+        //       tempConvoFiles[i] == tempConvoFiles[tempConvoFiles.length - 1]
+        //       tempConvoFiles.pop();
+        //       conversationTemplate(src1,src2, convoCount++)
+        //       break;
+        //     }
+        //   } 
+        // }
+
+        
         //Handles the carousel thumbnails
         $('[id^=carousel-selector-]').click(function () {
             var id_selector = $(this).attr("id");
@@ -31,7 +132,7 @@ $(document).ready(function($) {
         });
 
 
-});
+}
 
 // <li class="col-sm-3">
 //     <a class="thumbnail" id="carousel-selector-0">
@@ -47,11 +148,22 @@ function carouselTemplate(item_index, src_path){
     } else { 
             container = $("<div> </div>").addClass("item").attr("data-slide-number", item_index);
     }
-    container.append("<img src='" + src_path + "'>")
-    $("#image-carousel").append(container);
 
-    list_item = $("<li> </li>").addClass("col-sm-3");
-    list_item.append("<a class='thumbnail' id='carousel-selector-" + item_index + "'> <img src='" + src_path + "'> </a>");
+
+    //if (src_path.endsWith('.png')){
+      container.append("<img src='" + src_path + "'>")
+      $("#image-carousel").append(container);
+
+      list_item = $("<li> </li>").addClass("col-sm-3");
+      list_item.append("<a class='thumbnail' id='carousel-selector-" + item_index + "'> <img src='" + src_path + "'> </a>");
+
+    // } else {
+    //   var video = $("<video> </video>");//.attr('controls','');//.attr("id", type + i);
+    //   video.append("<source src='" + src_path + "' type='video/webm'>");
+    //   container.append(video);
+    //   list_item.append("<a class='thumbnail' id='carousel-selector-" + item_index + "'> <video class='small-video'> <source src='" + src_path + "' type='video/webm'> </video> </a>");
+
+    // }
 
     $("#image-gallery").append(list_item);
 
@@ -73,14 +185,16 @@ function carouselTemplate(item_index, src_path){
   //     </div>
   //   </div>
   // </div>
-var src1 = "sbooth_ngoodpaster_2-Aug-2018-16-54-53.wav";
-var src2 = "ngoodpaster_sbooth_2-Aug-2018-16-54-53.wav";
+//var src1 = "sbooth_ngoodpaster_2-Aug-2018-16-54-53.wav";
+//var src2 = "ngoodpaster_sbooth_2-Aug-2018-16-54-53.wav";
 
 function conversationTemplate(audio_src1, audio_src2, item_index){
     var container = $("<div> </div>").addClass("panel").addClass("panel-default");
     var panel = $("<div> </div>").addClass("panel-heading");
     
-    var username = audio_src1.split("_");
+    var username = audio_src1.split("/")[1].split('_');
+    audio_src1 = 'https://' + address + '/conversations/' + audio_src1;
+    audio_src2 = 'https://' + address + '/conversations/' + audio_src2;
     var date_info = username[2].split("-");
 
     var date = date_info[1] + " " + date_info[0] + ", " + date_info[2];
@@ -113,10 +227,35 @@ function conversationTemplate(audio_src1, audio_src2, item_index){
         var audio = new Audio(this.id);
         audio.pause();
     });
+}
 
+function videoTemplate(src){
+  var container = $('<div></div>').addClass("gallery").addClass('videoInsert');
+  var video = $("<video> </video>").attr('controls','');//.attr("id", type + i);
+  video.append("<source src='" + src + "' type='video/webm'>");
+  container.append(video);
+  //var desc = $("<div></div>").addClass("desc").text(src);
+  //container.append(desc);
 
+  $('#video-container').append(container);
 }
 
 
+function jobTemplate(jobName){
+  var details = jobName.split('-');
 
+  var timeofday = 'am';
+  if (parseInt(details[3],10) > 12){
+    timeofday = 'pm';
+    if (details[3] !== '12'){
+      details[3] = parseInt(details[3],10) - 12;
+    }
+  }
 
+  var text = details[1] + ' ' + details[0] + ', ' + details[2] + ' - ' + details[3] + ':' + details[4] + ':' + details[5] + ' ' + timeofday;
+  var option = $("<option></option>").attr('id',jobName).val(jobName).text(text);
+
+  $('#selected_job').append(option);
+}
+
+//dd-Mmm-yy-hr-min-sec

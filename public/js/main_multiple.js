@@ -1,7 +1,7 @@
 'use strict';
 
 var address;
-if (screen.width == 1366){
+if (screen.width > 480){
 	address = "localhost";
 } else {
 	// address = "172.20.72.2";

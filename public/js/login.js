@@ -116,7 +116,7 @@ function validate_login(){
 	console.log(obj);
 
 	var string;
-	if (screen.width == 1366){
+	if (screen.width > 480){
 		string = "localhost";
 	} else {
 		string = "10.0.0.182";
@@ -129,7 +129,12 @@ function validate_login(){
 		var address = "https://" + string + ":8080/validatelogin";
 		$.post(address, obj, function(data){
 			if (data === 'success'){
-				window.location.href = "/personnel";
+				if ($("#prevJobs").is(':checked')){
+					window.location.href = "/previousJobs";
+				} else {
+					//window.location.href = "/personnel";
+					window.location.href = "/media";
+				}
 			} else if (data === 'fail'){
 				alert('Incorrect username and/or password');
 			}

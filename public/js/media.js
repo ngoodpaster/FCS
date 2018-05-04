@@ -172,12 +172,12 @@ function galleryTemplate(filename, i){
   if (filename.endsWith('.png')){
     type = 'image';
     // set source to be the filename from server
-    container.append("<img class='galleryImg' src='https://" + address + ":8080/media/" + endFolder + '/' + filename + "'/>");
+    container.append("<img class='galleryImg' src='https://" + address + ":8080/media_files/" + endFolder + '/' + filename + "'/>");
   } else {
     type = 'video';
     // set source to be the filename from server
     var video = $("<video> </video>").addClass("galleryImg").attr("id", type + i).attr('controls','');
-    video.append("<source src='https://" + address + ":8080/media/" + endFolder + '/' + filename + "' type='video/webm'>");
+    video.append("<source src='https://" + address + ":8080/media_files/" + endFolder + '/' + filename + "' type='video/webm'>");
     container.append(video);
     //container.append("<source src='https://" + address + ":8080/media/" + filename + "' type='video/mp4'>");
     //container.append("<source src='https://" + address + ":8080/media/" + filename + "' type='video/ogg'>");

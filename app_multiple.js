@@ -65,6 +65,17 @@ app.get('/', function(req,res){
   //res.sendFile(path.join(__dirname + '/media.html'));
 });
 
+app.get('/media', function(req,res){
+  sess = req.session;
+
+  //var fireId = req.query.username;
+
+  
+  //console.log(fireId)
+  //res.sendFile(path.join(__dirname + '/index.html'));
+  res.sendFile(path.join(__dirname + '/media.html'));
+});
+
 app.get('/personnel', function(req,res){
   sess = req.session;
 
@@ -73,8 +84,18 @@ app.get('/personnel', function(req,res){
   
   console.log(fireId)
   //res.sendFile(path.join(__dirname + '/index.html'));
-  console.log("loading index.html")
   res.sendFile(path.join(__dirname + '/personnel.html'));
+});
+
+app.get('/previousJobs', function(req,res){
+  sess = req.session;
+
+  var fireId = req.query.username;
+
+  
+  console.log(fireId)
+  //res.sendFile(path.join(__dirname + '/index.html'));
+  res.sendFile(path.join(__dirname + '/previous.html'));
 });
 
 
@@ -153,9 +174,219 @@ app.get('/loadpersonnel', function(req,res){
   // }
   console.log(connectedUsers)
   //res.send(connectedUsers)  
-  res.send({username:sess.username,users:connectedUsers,endFolder:endFolder})
+  res.send({username:sess.username,users:connectedUsers})//,endFolder:endFolder})
 });
 
+
+app.get('/loadpreviousjobs', function(req,res){
+	var path = __dirname + '/public/media_files/'; 
+	
+	fs.readdir(path, function(err, filenames) {
+   		if (err) throw err;
+   		var items = 0;
+   		var data = {'filenames':filenames}
+   		res.send(data);
+	
+    });
+});
+
+app.post('/loadprevmedia', function(req,res){
+	console.log('media req body')
+	console.log(req.body)
+	var obj = req.body;
+	var folder = obj.folder;
+	var path = __dirname + '/public/media_files/' + folder; 
+
+	fs.readdir(path, function(err, filenames) {
+   		if (err) throw err;
+   		var items = 0;
+   		var data = {'filenames':filenames}
+   		res.send(data);
+	
+    });
+});
+
+app.post('/loadprevconvos', function(req,res){
+	console.log(req.body)
+	var obj = req.body;
+	var folder = obj.folder;
+	var path = __dirname + '/public/conversations/' + folder; 
+
+	fs.readdir(path, function(err, filenames) {
+   		if (err) throw err;
+   		var items = 0;
+   		var data = {'filenames':filenames}
+   		res.send(data);
+	
+    });
+});
+
+
+
+
+/*
+function loadprevmediafiles(filePath, folder, cb){
+	var processed = 0;
+	console.log("filepath: " + filePath)
+	fs.readdir(filePath, function(err, media_files) {
+		console.log("media files:")
+		console.log(media_files)
+   		if (err) throw err;
+   		for (var j = 0 ; j < media_files.length ; j++){
+   			media_files[j] = folder + '/' + media_files[j];
+   			processed++;
+   			if (processed == media_files.length){
+   				console.log("about to run callback function for loadprevmediafiles")
+   				cb(media_files);
+   			}
+   		}
+		
+	});
+}
+
+function loadprevmediafolders(cb){
+	var media_path = __dirname + '/public/media';
+
+	//var processed_folders = 0;
+	//var processed_files = 0;
+
+	fs.readdir(media_path, function(err, media_folders) {
+		var mediaFolders = [];
+		var mediaFiles = [];
+		console.log(media_folders);
+   		if (err) throw err;
+		mediaFolders = media_folders;
+		for (var i = 0 ; i < media_folders.length ; i++){
+			var filePath = media_path + '/' + media_folders[i];
+			loadprevmediafiles(filePath, media_folders[i], function(data){
+				console.log("in callback for loadprevmediafiles")
+				console.log(data);
+				mediaFiles.push.apply(mediaFiles,data);
+			});
+		}
+		console.log("about to run callback function for loadprevmedia")
+		cb({'mediafolders':mediaFolders,'mediaFiles':mediaFiles})
+    });
+}
+
+app.get('/loadpreviousjobmedia', function(req,res){
+	
+	loadprevmediafolders(function(data){
+		console.log("in callback for loading prev media")
+		console.log(data)
+		res.send(data);
+	})
+	// var media_path = __dirname + '/public/media';
+
+	// var mediaFolders = [];
+	// var mediaFiles = [];
+	// var processed_folders = 0;
+	// //var processed_files = 0;
+
+	// fs.readdir(media_path, function(err, media_folders) {
+	// 	console.log(media_folders);
+ //   		if (err) throw err;
+	// 	mediaFolders = media_folders;
+	// 	for (var i = 0 ; i < media_folders.length ; i++){
+	// 		var filePath = media_path + '/' + media_folders[i];
+	// 		fs.readdir(filePath, function(err, media_files) {
+ //   				if (err) throw err;
+ //   				for (var j = 0 ; j < media_files.length ; i++){
+ //   					media_files[j] = media_folders[i] + '/' + media_files[j];
+ //   				}
+	// 			mediaFiles.push.apply(mediaFiles,media_files);
+	// 		});
+	// 	}
+	// 	var data = {'convofolders':convoFolders,'convoFiles':convoFiles}
+	//     	res.send(data);
+ //    });
+
+  //   if (processed_folders == mediaFolders.length){
+  //   	var data = {'mediafolders':mediaFolders,'mediaFiles':mediaFiles}
+		// res.send(data);
+  //   }
+
+});
+
+function loadprevconvofiles(filePath, folder, cb){
+	//var convoFiles = [];
+
+	fs.readdir(filePath, function(err, convo_files) {
+		var processed = 0;
+		if (err) throw err;
+		for (var j = 0 ; j < convo_files.length ; j++){
+			convo_files[j] = folder + '/' + convo_files[j];
+			processed++;
+			if (processed == convo_files.length){
+				console.log("about to run callback function for loadprevconvofiles")
+				cb(convo_files)
+			}
+		}   
+		// //convoFiles = convo_files;				
+		// console.log("about to run callback function for loadprevconvofiles")
+		// cb(convo_files);
+	});
+}
+
+function loadprevconvofolders(cb){
+	var convo_path = __dirname + '/public/conversations';
+	var processed = 0;
+	fs.readdir(convo_path, function(err, convo_folders) {
+   		var convoFolders = [];
+		var convoFiles = [];
+   		console.log(convo_folders);
+   		if (err) throw err;
+		convoFolders = convo_folders;
+		for (var i = 0 ; i < convo_folders.length ; i++){
+			//processed_folders++;
+			var filePath = convo_path + '/' + convo_folders[i];
+			loadprevconvofiles(filePath, convo_folders[i], function(data){
+				console.log("in callback for loadprevconvofiles")
+				console.log(data);
+				convoFiles.push.apply(convoFiles,data);
+				processed++;
+				if (processed == convo_folders.length){
+					cb({'convofolders':convoFolders,'convoFiles':convoFiles});
+				}
+			});
+//			processed_folders++;
+		}
+    });
+}
+
+app.get('/loadpreviousjobconvos', function(req,res){
+	loadprevconvofolders(function(data){
+		res.send(data);
+	});
+	// var convo_path = __dirname + '/public/conversations';
+	// var processed_folders = 0;
+	// var processed_files = 0;
+
+	// fs.readdir(convo_path, function(err, convo_folders) {
+ //   		var convoFolders = [];
+	// 	var convoFiles = [];
+	
+ //   		console.log(convo_folders);
+ //   		if (err) throw err;
+	// 	convoFolders = convo_folders;
+	// 	for (var i = 0 ; i < convo_folders.length ; i++){
+	// 		processed_folders++;
+	// 		var filePath = convo_path + '/' + convo_folders[i];
+	// 		fs.readdir(filePath, function(err, convo_files) {
+ //   				if (err) throw err;
+ //   				for (var j = 0 ; j < convo_files.length ; i++){
+ //   					convo_files[j] = convo_folders[i] + '/' + convo_files[j];
+ //   				}   				
+	// 			convoFiles.push.apply(convoFiles,convo_files);
+	// 			console.log(i)
+	// 		});
+	// 		processed_folders++;
+	// 	}
+		
+ //    });
+
+});
+*/
 app.post('/validatelogin', function(req,res){
   sess = req.session;
   var user = req.body;
@@ -192,7 +423,7 @@ app.post('/storeimage', function(req,res){
 
 	var date = new Date();
 	date = formatDate(date);
-	var path = '/public/media/' + endFolder + '/'; 
+	var path = '/public/media_files/' + endFolder + '/'; 
 
 	var buf = new Buffer(req.body.blob, 'base64'); // decode
   	fs.writeFile(__dirname + path + date + "-image.png", buf, function(err) {
@@ -212,7 +443,7 @@ app.post('/storevideo', function(req,res){
 
 	var date = new Date();
 	date = formatDate(date);
-	var path = '/public/media/' + endFolder + '/'; 
+	var path = '/public/media_files/' + endFolder + '/'; 
 
 	var buf = new Buffer(req.body.blob, 'base64'); // decode
   	fs.writeFile(__dirname + path + date + "-video.webm", buf, function(err) {
@@ -266,7 +497,7 @@ function formatDate(date) {
 
 app.get('/loadmedia', function(req,res){
   //sess = req.session;
-	var path = __dirname + '/public/media'; 
+	var path = __dirname + '/public/media_files/' + endFolder; 
 	var blobArray = [];
 	
 	fs.readdir(path, function(err, filenames) {
@@ -419,7 +650,15 @@ function createDirectories(){
 	if (!fs.existsSync(__dirname + '/public/conversations/' + date)){
     	fs.mkdirSync(__dirname + '/public/conversations/' + date);
 	}
-	if (!fs.existsSync(__dirname + '/public/media/' + date)){
-    	fs.mkdirSync(__dirname + '/public/media/' + date);
+	if (!fs.existsSync(__dirname + '/public/media_files/' + date)){
+    	fs.mkdirSync(__dirname + '/public/media_files/' + date);
 	}
 }
+
+
+
+
+//got to put media like convo
+
+
+//dd-Mmm-yy-hr-min-sec
