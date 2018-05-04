@@ -1,6 +1,9 @@
 'use strict';
 
 var https = require('https');
+var FileAPI = require('file-api')
+  , File = FileAPI.File;
+
 var fs = require('fs');
 var os = require('os');
 var nodeStatic = require('node-static');
@@ -10,13 +13,30 @@ var path = require('path');
 var MongoClient = require('mongodb').MongoClient;
 var bodyParser = require('body-parser');
 var session = require("express-session");
+var fs = require('file-system')
 
 
 var express = require('express');
 var app = express();
 app.use(express.static('public'));
 app.use(session({secret: 'somesecret'}));
+
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true,  parameterLimit:500000}));
+
 app.use(bodyParser());
+
+
+var endFolder;
+
+var monthNames = [
+    "Jan", "Feb", "Mar",
+    "Apr", "May", "Jun", "Jul",
+    "Aug", "Sep", "Oct",
+    "Nov", "Dec"
+];
+
+createDirectories();
 
 var connectedUsers = []
 
@@ -42,6 +62,7 @@ var room = 'foo';
 app.get('/', function(req,res){
   //res.sendFile(path.join(__dirname + '/index.html'));
   res.sendFile(path.join(__dirname + '/login.html'));
+  //res.sendFile(path.join(__dirname + '/media.html'));
 });
 
 app.get('/personnel', function(req,res){
@@ -132,7 +153,7 @@ app.get('/loadpersonnel', function(req,res){
   // }
   console.log(connectedUsers)
   //res.send(connectedUsers)  
-  res.send({username:sess.username,users:connectedUsers})
+  res.send({username:sess.username,users:connectedUsers,endFolder:endFolder})
 });
 
 app.post('/validatelogin', function(req,res){
@@ -149,7 +170,7 @@ app.post('/validatelogin', function(req,res){
       if (result.length === 1){
         if (result[0].password === user.password){
           sess.username = user.username;
-          addConnectedUser(user.username);
+          //addConnectedUser(user.username);
           res.end('success');
         } else {
           res.end('fail');
@@ -160,6 +181,101 @@ app.post('/validatelogin', function(req,res){
     });
   });  
 
+
+});
+
+//doesn't work (can't view blob)
+
+app.post('/storeimage', function(req,res){
+
+	console.log("blob type" + req.body.blob.type)
+
+	var date = new Date();
+	date = formatDate(date);
+	var path = '/public/media/' + endFolder + '/'; 
+
+	var buf = new Buffer(req.body.blob, 'base64'); // decode
+  	fs.writeFile(__dirname + path + date + "-image.png", buf, function(err) {
+    	if(err) {
+      		console.log("err", err);
+    	} else {
+      		return res.json({'status': 'success'});
+    	}
+  	});
+
+});
+
+
+app.post('/storevideo', function(req,res){
+
+	console.log("blob type" + req.body.blob.type)
+
+	var date = new Date();
+	date = formatDate(date);
+	var path = '/public/media/' + endFolder + '/'; 
+
+	var buf = new Buffer(req.body.blob, 'base64'); // decode
+  	fs.writeFile(__dirname + path + date + "-video.webm", buf, function(err) {
+    	if(err) {
+      		console.log("err", err);
+    	} else {
+      		return res.json({'status': 'success'});
+    	}
+  	});
+
+});
+
+
+app.post('/storerecording', function(req,res){
+
+	console.log("blob type" + req.body.blob.type)
+	var toUsername = req.body.to;
+	var fromUsername = req.body.from;
+	var date = new Date();
+	date = formatDate(date);
+	var path = '/public/conversations/' + endFolder + '/'; 
+
+	if (toUsername == 'callAll'){
+
+	}
+
+	var fileName = fromUsername + '_' + toUsername + '_' + date;
+	var buf = new Buffer(req.body.blob, 'base64'); // decode
+  	fs.writeFile(__dirname + path + fileName + ".wav", buf, function(err) {
+    	if(err) {
+      		console.log("err", err);
+    	} else {
+      		return res.json({'status': 'success'});
+    	}
+  	});
+
+});
+
+function formatDate(date) {
+  var day = date.getDate();
+  var monthIndex = date.getMonth();
+  var year = date.getFullYear();
+  var hours = date.getHours()
+  var mins = date.getMinutes()
+  var secs = date.getSeconds()
+  
+
+  return day + '-' + monthNames[monthIndex] + '-' + year + '-' + hours + '-' + mins + '-' + secs;
+}
+
+
+app.get('/loadmedia', function(req,res){
+  //sess = req.session;
+	var path = __dirname + '/public/media'; 
+	var blobArray = [];
+	
+	fs.readdir(path, function(err, filenames) {
+   		if (err) throw err;
+   		var items = 0;
+   		var data = {'endFolder':endFolder,'filenames':filenames}
+   		res.send(data);
+	
+    });
 
 });
 
@@ -206,6 +322,7 @@ io.sockets.on('connection', function(socket) {
 
   //message will include the fireId of who they want to connect with
   socket.on('calling', function(message){
+  	console.log('someones calling')
     //message has a field called calleeFireId, grab the socketId from currSockets using that as the key
     var callee = currSockets.get(message.calleeFireId);
     //setting callToAll variable to false tells the receiving client that this is just a 2 way connection.
@@ -216,11 +333,13 @@ io.sockets.on('connection', function(socket) {
 
   socket.on('offer', function(sessionDescription, callIds){
     //send offer back to caller
+    console.log('received offer');
     io.to(callIds.callerId).emit('incoming offer', sessionDescription, callIds);
   });
 
   socket.on('answer', function(sessionDescription, callIds){
     //send answer back to callee
+    console.log('received answer');
     io.to(callIds.calleeId).emit('incoming answer', sessionDescription, callIds);
   });
 
@@ -253,6 +372,7 @@ io.sockets.on('connection', function(socket) {
       socket.join(room);
       log('Client ID ' + socket.id + ' created room ' + room);
       socket.emit('joined', {'room':room,'connectedUsers':connectedUsers});//'socketId':socket.id});
+      createDirectories();
     }else {
       log('Client ID ' + socket.id + ' joined room ' + room);
       io.sockets.in(room).emit('join', {'room':room,'connectedUsers':connectedUsers});
@@ -260,11 +380,14 @@ io.sockets.on('connection', function(socket) {
       socket.emit('joined', {'room':room,'connectedUsers':connectedUsers});//'socketId':socket.id});
       io.sockets.in(room).emit('ready');
     }
+    console.log("# of clients in room: " + io.sockets.adapter.rooms[room].length);
   });
 
   socket.on('leaving', function(fireId){
+  	console.log("someone left")
     currSockets.delete(fireId);
     removeConnectedUser(fireId);
+    socket.leave(room);
     io.sockets.in(room).emit('left',{'fireId':fireId, 'connectedUsers':connectedUsers});
   });
 
@@ -272,6 +395,7 @@ io.sockets.on('connection', function(socket) {
     var callee = currSockets.get(toUsername);
     io.to(callee).emit('bye',fromUsername);
   });
+
   socket.on('broadcast', function(message) {
   	// emit broadcast message to all in the room
   	socket.broadcast.emit('broadcast');
@@ -288,3 +412,14 @@ io.sockets.on('connection', function(socket) {
     }
   });
 });
+
+function createDirectories(){
+	var date = formatDate(new Date());
+	endFolder = date;
+	if (!fs.existsSync(__dirname + '/public/conversations/' + date)){
+    	fs.mkdirSync(__dirname + '/public/conversations/' + date);
+	}
+	if (!fs.existsSync(__dirname + '/public/media/' + date)){
+    	fs.mkdirSync(__dirname + '/public/media/' + date);
+	}
+}

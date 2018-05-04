@@ -116,10 +116,11 @@ function validate_login(){
 	console.log(obj);
 
 	var string;
-	if (screen.width > 480){
+	if (screen.width == 1366){
 		string = "localhost";
 	} else {
-		string = "172.20.72.2";
+		string = "10.0.0.182";
+		// string = "172.20.72.2";
 	}
 
 	//Now we have the object, time to send it to the server 

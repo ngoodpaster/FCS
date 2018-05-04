@@ -1,10 +1,11 @@
 'use strict';
 
 var address;
-if (screen.width > 480){
+if (screen.width == 1366){
 	address = "localhost";
 } else {
-	address = "172.20.72.2";
+	// address = "172.20.72.2";
+	address = "10.0.0.182";
 }
 
 
@@ -34,7 +35,14 @@ var pcConfig = {
   }]
 };
 
-var socket = io.connect();;
+
+var shouldStop = false;
+var stopped = true;
+var options;
+var recordedChunks;
+var mediaRecorder;
+
+var socket = io.connect();
 var room;
 
 // var localVideo;
@@ -114,7 +122,7 @@ function callHandler(username){
   	//THIS IS FOR TESTING PURPOSES
   	//calleeId = username;
   	//console.log("callee Id: " + calleeId);
-
+  	muteAll = false;
 	if (!inCall){
 	  	
 	  	console.log("button clicked");
@@ -229,18 +237,19 @@ socket.on('callee busy', function(calleeId){
 //callee runs this code
 socket.on('incoming call', function(callIds, callToAll){
 	console.log("incoming call from socket: " + callIds.callerId);
+	
 	if (inCall && !callToAll){
 		socket.emit('in call', callIds);
 	} else {
 		//calleeId = callIds.callerUsername;
-		
+		muteAll = false;	
 		if (inCall){
 			hangup();
 		}
 		if (callToAll){
 			broadcast = true;
 		}
-		inCall = true;
+		// inCall = true;
 		var pcId = callIds.callerUsername;
 		maybeStart(pcId);
 		//obtaining local session description
@@ -307,6 +316,8 @@ function setLocalAndEmit(callIds,sessionDescription){
 socket.on('incoming answer', function(remoteDescription, callIds){
 	console.log("received an answer")
 	if (remoteDescription.type === 'answer'){
+		inCall = true;
+
 		//set the remote dewcription to be the answer
 		console.log("setting remote description")
 		console.log("should call handler for remote stream")
@@ -419,6 +430,79 @@ function gotStream(stream) {
   */
 }
 
+
+
+
+//$("#capture-video-button").click(captureVideo);
+
+function captureAudio(){
+	if(stopped == false){
+		shouldStop = true;
+	} else if (stopped == true){
+		//$( "#capture-video-button > span" ).removeClass( "glyphicon-facetime-video" ).addClass( "glyphicon-stop" );
+		//stopped = false;
+		handleSuccess(localStream);
+	}
+}
+
+var blobToBase64 = function(blob, cb) {
+  var reader = new FileReader();
+  reader.onload = function() {
+    var dataUrl = reader.result;
+    var base64 = dataUrl.split(',')[1];
+    cb(base64);
+  };
+  reader.readAsDataURL(blob);
+};
+
+function handleSuccess(stream) {
+    options = {mimeType: 'audio/webm'};
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream, options);
+    console.log("im in here! handle success" + stream);
+    shouldStop = false; 
+
+    mediaRecorder.ondataavailable = function(e) {
+      if (e.data.size > 0) {
+      	console.log("data!");
+        recordedChunks.push(e.data);
+      }
+      if(shouldStop === true && stopped === false) {
+        mediaRecorder.stop();
+        stopped = true;
+      }
+    };
+
+    mediaRecorder.onstop = function(e) {
+      var audio_blob = new Blob(recordedChunks, {type: 'audio/webm'});
+
+      blobToBase64(audio_blob, function(base64){ // encode
+      	
+      	var to = $('#username').text();
+
+        var update = {'blob': base64, 'to':to, 'from':myInfo.username};
+        $.post('https://' + address + ':8080/storerecording', update,  function(data){
+          console.log("success");
+          
+        });
+      });  
+
+
+      console.log(audio_blob);
+      //$( "#capture-video-button > span" ).removeClass( "glyphicon-stop" ).addClass( "glyphicon-facetime-video" );
+      stopped = true;
+    };
+
+    mediaRecorder.onstart = function(e){
+    	stopped = false;
+    }
+
+    console.log(mediaRecorder);
+    mediaRecorder.start(20);
+    
+};
+
+
 //
 //
 //
@@ -454,9 +538,10 @@ function maybeStart(pcId) {
 //
 //
 
-window.onbeforeunload = function() {
+window.onunload = window.onbeforeunload = function() {
 	socket.emit("leaving", myFireId);
 };
+
 
 /////////////////////////////////////////////////////////
 
@@ -583,6 +668,7 @@ function handleRemoteStreamAdded(event) {
   	
 	remoteStream = event.stream;
 	remoteStreams.push(remoteStream);
+	console.log(remoteStream.getTracks()[0].enabled)
   	var video = document.createElement("video");
   	video.id = "remoteVideo" + counter++;
   	video.srcObject = remoteStream;
@@ -611,6 +697,8 @@ function handleRemoteStreamAdded(event) {
 		var pcId = pcIter.next().value;
 		$(pcId + "-name").text("Broadcast From: " + pcId);
 	}
+
+	captureAudio()
 
 /*
   var remoteStream = event.stream;
@@ -646,6 +734,7 @@ function handleRemoteHangup(pcId) {
 
 function stop(pcId) {
   	//isStarted = false;
+  	captureAudio();
   	var pc = pcs.get(pcId)
   	pc.close();
   	pc = null;
@@ -656,6 +745,7 @@ function stop(pcId) {
 		$("#callButton > span").html("Call");
 		inCall = false;
   	}
+
 }
 
 ///////////////////////////////////////////
