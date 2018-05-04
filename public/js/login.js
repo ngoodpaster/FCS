@@ -133,7 +133,8 @@ function validate_login(){
 					window.location.href = "/previousJobs";
 				} else {
 					//window.location.href = "/personnel";
-					window.location.href = "/media";
+					// window.location.href = "/media";
+					window.location.href = '/select';
 				}
 			} else if (data === 'fail'){
 				alert('Incorrect username and/or password');

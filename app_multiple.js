@@ -87,6 +87,11 @@ app.get('/personnel', function(req,res){
   res.sendFile(path.join(__dirname + '/personnel.html'));
 });
 
+app.get('/select',function(req,res){
+	sess = req.session;
+	res.sendFile(path.join(__dirname + '/select.html'));
+})
+
 app.get('/previousJobs', function(req,res){
   sess = req.session;
 
@@ -401,7 +406,7 @@ app.post('/validatelogin', function(req,res){
       if (result.length === 1){
         if (result[0].password === user.password){
           sess.username = user.username;
-          //addConnectedUser(user.username);
+          addConnectedUser(user.username);
           res.end('success');
         } else {
           res.end('fail');

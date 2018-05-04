@@ -1,0 +1,49 @@
+#media{
+	position: absolute;
+	height: 50%;
+	top: 0px;
+	width: 100%;
+
+}
+
+#personell{ 
+	position: absolute;
+	height: 50%;
+	bottom: 0;
+	width: 100%;
+}
+
+#personell-button{
+	background-color: #4CAF50;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+}
+
+#media-button{
+	width: 100%;
+	height: 100%;
+	text-align: center;
+}
+
+#personell-icon{
+	position: relative;
+	margin: auto 10px;
+	width: 400px;
+	font-size: 70px;
+	text-align: center;
+	word-spacing: 10px;
+}
+
+#media-icon{
+	position: relative;
+	margin:auto 10px;
+	width: 400px;
+	font-size: 70px;
+	text-align: center;
+	word-spacing: 10px;
+}
+
+span.glyphicon{
+	font-size: 8em;
+}
