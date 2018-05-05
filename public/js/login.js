@@ -80,11 +80,18 @@ function validate_create(){
 	console.log(obj);
 
 
+	var string;
+        if (screen.width > 480){
+                string = "localhost";
+        } else {
+                string = "192.168.4.1";
+                // string = "172.20.72.2";
+        }
 
 
 	//Now we have the object, time to send it to the server
 	if (!error){ 
-		$.post( "https://172.20.72.2:8080/createaccount", obj, function(data){
+		$.post( "https://"+ string + ":8080/createaccount", obj, function(data){
 			if (data === 'done'){
 				window.location.href = "/personnel";
 				//$.post("https://localhost:8080/personnel", obj['username']);		
@@ -119,7 +126,7 @@ function validate_login(){
 	if (screen.width > 480){
 		string = "localhost";
 	} else {
-		string = "10.0.0.182";
+		string = "192.168.4.1";
 		// string = "172.20.72.2";
 	}
 

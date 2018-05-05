@@ -7,9 +7,11 @@
 		"body-parser": "^1.18.2",
 		"cert-unbundle": "0.0.0",
 		"cookie-parser": "^1.4.3",
+		"express": "^4.16.3",
 		"express-session": "^1.15.6",
 		"file-api": "^0.10.4",
 		"file-system": "^2.2.2",
+		"mongodb": "^3.0.7",
 		"node-static": "^0.7.10",
 		"socket.io": "^1.2.0"
 	}

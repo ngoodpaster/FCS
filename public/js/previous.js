@@ -1,11 +1,11 @@
 var jobs;
 
 var address;
-if (screen.width == 1366){
+if (screen.width > 480){
   address = "localhost";
 } else {
   // address = "172.20.72.2";
-  address = "10.0.0.182";
+  address = "192.168.4.1";
 }
 
 function updateMedia(){
