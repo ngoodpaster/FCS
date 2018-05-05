@@ -48,7 +48,8 @@ function updateMedia(){
     console.log(tempConvoFiles.length)
 
     while (tempConvoFiles.length != 0){
-      src1 = tempConvoFiles.pop()
+      src1 = tempConvoFiles[tempConvoFiles.length - 1];
+      tempConvoFiles.pop();
       src1details = src1.split('_');
       for (var i = 0 ; i < tempConvoFiles.length; i++){
         src2 = tempConvoFiles[i];
