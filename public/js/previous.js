@@ -249,15 +249,16 @@ function conversationTemplate(folder,audio_src1, audio_src2, item_index){
 
     $("#accordion").append(container);
 
-    $("#" + audio_src2).on("play", function(){
+    document.getElementById(audio_src2).onplay = function(){
         var audio = new Audio('https://' + address + ':8080/conversations/' + folder + '/' + this.id);
+	console.log("playing second audio src"); 
         audio.play();
-    });
+    }
 
-    $("#" + audio_src2).on("pause", function(){
+    document.getElementById(audio_src2).onpause = function(){
         var audio = new Audio('https://' + address + ':8080/conversations/' + folder + '/' + this.id );
         audio.pause();
-    });
+    }
 }
 
 function videoTemplate(src){
