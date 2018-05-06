@@ -93,11 +93,12 @@ function validate_create(){
 	if (!error){ 
 		$.post( "https://"+ string + ":8080/createaccount", obj, function(data){
 			if (data === 'done'){
-				window.location.href = "/personnel";
+				alert('sucessfully created account');
+				window.location.href = "/";
 				//$.post("https://localhost:8080/personnel", obj['username']);		
 			}
 		});
-		console.log("preparing to load index.html");
+//		console.log("preparing to load index.html");
 		//load next page	
 	}	
 }

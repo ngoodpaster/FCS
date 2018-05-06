@@ -1,4 +1,5 @@
 var jobs;
+var convoFiles;
 
 var address;
 if (screen.width > 480){
@@ -36,34 +37,62 @@ function updateMedia(){
     }
   });  
 
+
   $.post('https://' + address + ':8080/loadprevconvos', obj, function(data){
     console.log('convo data')
-    console.log(data)
-    var convoFiles = data.filenames;
+    console.log(data.filenames.length)
+    console.log(data.filenames[0])
+    console.log(data.filenames[1])
+    convoFiles = data.filenames;
+    console.log(data.filenames)
+    console.log(convoFiles)
 
     var src1,src2,src1details,src2details;
-    var tempConvoFiles = convoFiles;
+    var tempConvoFiles = convoFiles.slice();
     var convoCount = 0;
-    
+    console.log(tempConvoFiles)
     console.log(tempConvoFiles.length)
-
-    while (tempConvoFiles.length != 0){
-      src1 = tempConvoFiles[tempConvoFiles.length - 1];
-      tempConvoFiles.pop();
+   
+    createConversations(folder);
+/*    while (convoFiles.length != 0){
+      src1 = convoFiles[convoFiles.length - 1];
+      convoFiles.pop();
       src1details = src1.split('_');
-      for (var i = 0 ; i < tempConvoFiles.length; i++){
-        src2 = tempConvoFiles[i];
+      for (var i = 0 ; i < convoFiles.length; i++){
+        src2 = convoFiles[i];
         src2details = src2.split('_');
         if (src1details[2] == src2details[2] && src2details[0] == src1details[1] && src1details[0] == src2details[1]){
-          tempConvoFiles[i] == tempConvoFiles[tempConvoFiles.length - 1]
-          tempConvoFiles.pop();
+          convoFiles[i] == convoFiles[convoFiles.length - 1]
+          convoFiles.pop();
           conversationTemplate(src1,src2, convoCount++)
           break;
         }
       } 
-    }
+    }*/
   
   });
+}
+
+function createConversations(folder){
+    var convoCount = 0;
+    console.log(convoFiles);
+    while (convoFiles.length != 0){
+      src1 = convoFiles[convoFiles.length - 1];
+      console.log(src1);
+      convoFiles.pop();
+      console.log(convoFiles);
+      src1details = src1.split('_');
+      for (var i = 0 ; i < convoFiles.length; i++){
+        src2 = convoFiles[i];
+        src2details = src2.split('_');
+        if (src1details[2] == src2details[2] && src2details[0] == src1details[1] && src1details[0] == src2details[1]){
+          convoFiles[i] == convoFiles[convoFiles.length - 1]
+          convoFiles.pop();
+          conversationTemplate(folder,src1,src2, convoCount++)
+          break;
+        }
+      } 
+    }
 }
 
 
@@ -189,13 +218,14 @@ function carouselTemplate(item_index, src_path){
 //var src1 = "sbooth_ngoodpaster_2-Aug-2018-16-54-53.wav";
 //var src2 = "ngoodpaster_sbooth_2-Aug-2018-16-54-53.wav";
 
-function conversationTemplate(audio_src1, audio_src2, item_index){
+function conversationTemplate(folder,audio_src1, audio_src2, item_index){
+    console.log(audio_src1);
     var container = $("<div> </div>").addClass("panel").addClass("panel-default");
     var panel = $("<div> </div>").addClass("panel-heading");
     
-    var username = audio_src1.split("/")[1].split('_');
-    audio_src1 = 'https://' + address + '/conversations/' + audio_src1;
-    audio_src2 = 'https://' + address + '/conversations/' + audio_src2;
+    var username = audio_src1.split('_');
+    audio_src1 = 'https://' + address + ':8080/conversations/' + folder + '/' + audio_src1;
+//    var src2 = 'https://' + address + ':8080/conversations/' + audio_src2;
     var date_info = username[2].split("-");
 
     var date = date_info[1] + " " + date_info[0] + ", " + date_info[2];
@@ -220,12 +250,12 @@ function conversationTemplate(audio_src1, audio_src2, item_index){
     $("#accordion").append(container);
 
     $("#" + audio_src2).on("play", function(){
-        var audio = new Audio(this.id);
+        var audio = new Audio('https://' + address + ':8080/conversations/' + folder + '/' + this.id);
         audio.play();
     });
 
     $("#" + audio_src2).on("pause", function(){
-        var audio = new Audio(this.id);
+        var audio = new Audio('https://' + address + ':8080/conversations/' + folder + '/' + this.id );
         audio.pause();
     });
 }

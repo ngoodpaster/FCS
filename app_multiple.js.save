@@ -221,9 +221,9 @@ app.post('/loadprevconvos', function(req,res){
 	fs.readdir(path, function(err, filenames) {
    		if (err) throw err;
    		var items = 0;
-   		var data = {'filenames':filenames};
+   		var data = {'filenames':filenames}'
    		console.log(filenames);
-		return res.send(data);
+		res.send(data);
 	
     });
 });

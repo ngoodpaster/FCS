@@ -1,9 +1,8 @@
 <html>
 
   <head>
-    <title>firefightercomm</title>
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <script src="js/lib/jquery-3.3.1.min.js" integrity=""></script>
+    <title>firefightercomm</title   <link rel="stylesheet" href="m/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="js/lib/jquery.min.js" integrity=""></script>
     <link rel="stylesheet" type="text/css" href="/css/login.css"> <!--?version=1"> -->
     <!--<script src="login.js" type="text/javascript"></script>-->
     <script src="js/login.js"></script>
