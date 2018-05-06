@@ -21,18 +21,47 @@
 	</div>
 
 	<div id="view"> 
-		<div class="row">
-			<div id='photo-gallery' class='list-group gallery'>
-			</div>
-		</div> 
+		<div id="slider-thumbs">
+		    <!-- Bottom switcher of slider -->
+		    <ul id="image-gallery" class="hide-bullets">
+		    	<!-- image gallery --> 
+		    </ul>
+		</div>
+		
+		<div id="slider-container" class="center-block text-center"> 
+			<!-- SLIDER --> 
+		    <div class="center-block text-center" id="slider">
+		        <!-- Top part of the slider -->
+		            <div id="carousel-bounding-box">
+		                <div class="carousel slide" id="myCarousel">
+		
+
+		                    <!-- Carousel items -->
+		                    <div id="image-carousel" class="carousel-inner">
+		                    	<!-- carousel-->
+		                    </div>
+		
+
+		                    <!-- Carousel nav -->
+		                    <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+		                        <span class="glyphicon glyphicon-chevron-left"></span>
+		                    </a>
+		                    <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+		                        <span class="glyphicon glyphicon-chevron-right"></span>
+		                    </a>
+		                </div>
+		            </div>
+		    </div>
+		</div>
+		
 	</div>
 
 	<div id="button-container"> 
 		<button id="capture-photo-button" type="button" style="top: 0; background-color: red; height: 50%; border-width: 2px; border-color: black; width: 100%;" class="btn btn-default">
-			<span id="photo-icon" style="display: table-cell; vertical-align: middle; margin: auto; height: 50%; width: 100px; color: white" class="glyphicon glyphicon-camera"> </span> 	
+			<span id="photo-icon" style="display: table-cell; vertical-align: middle; margin: auto; height: 50%; width: 100px; color: white" class="glyphicon glyphicon-camera camerabuttons"> </span> 	
 		</button>
 		<button id="capture-video-button" type="button" style="bottom: 0; background-color: red; border-width: 2px; border-color: black; height: 50%; width: 100%;" class="btn btn-default">
-			<span id="video-icon" style="display: table-cell; vertical-align: middle; margin: auto; height: 50%; width: 100px; color: white" class="glyphicon glyphicon-facetime-video"> </span> 	
+			<span id="video-icon" style="display: table-cell; vertical-align: middle; margin: auto; height: 50%; width: 100px; color: white" class="glyphicon glyphicon-facetime-video camerabuttons"> </span> 	
 		</button>
 	</div>
 

@@ -1,13 +1,14 @@
 'use strict';
 
-var address;
+var address = "192.168.4.1";
+/*
 if (screen.width > 480){
 	address = "localhost";
 } else {
 	// address = "172.20.72.2";
 	address = "192.168.4.1";
 }
-
+*/
 
 var myFireId;
 var calleeFireId;// = prompt("enter the callee's id", "theirId");

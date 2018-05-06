@@ -1,19 +1,21 @@
 var jobs;
 var convoFiles;
 
-var address;
-if (screen.width > 480){
+var address = "192.168.4.1";
+/*if (screen.width > 480){
   address = "localhost";
 } else {
   // address = "172.20.72.2";
   address = "192.168.4.1";
 }
-
+*/
 function updateMedia(){
   $("#image-gallery").empty();
   $("#image-carousel").empty();
-  $('#accordian').empty()
-
+  //this doesn't seem to be working
+  $('#accordion').empty()
+  //clear video page
+  $('#video-container').empty();
   var folder = $('#selected_job').val();
   console.log('folder: ' + folder)
   var obj = new Object();
@@ -33,7 +35,7 @@ function updateMedia(){
     }
     
     if (picCount == 0){
-      carouselTemplate(0,'http://placehold.it/470x480&text=No%20Media');
+      carouselTemplate(0, 'https://' + address + ':8080/js/no_media.png');
     }
   });  
 

@@ -97,6 +97,57 @@ span.glyphicon {
 }
 
 .galleryImg{
+/*	width: 100%;
+	height: 100%;*/
+}
+
+.hide-bullets {
+    list-style:none;
+    margin-left: -40px;
+    margin-top:20px;
+}
+
+.thumbnail {
+    padding: 0;
+}
+
+.carousel-inner>.item>img, .carousel-inner>.item>a>img {
+    width: 100%;
+}
+
+#slider-container{
+	height: 50%;
+	width: 400px;
+}
+
+#slider-thumbs{
+	position: absolute;
+	bottom: 0;
 	width: 100%;
+	height: 50%;
+	overflow: scroll;
+}
+
+#carousel-bounding-box{
+	position: relative;
+	top: 10;
 	height: 100%;
+	width: 100%;
+}
+
+span.glyphicon{
+	font-size: 1em;
+}
+
+span.camerabuttons {
+	margin: auto !important;
+    font-size: 7em !important;
+    width: 100px !important;
+    display: inline-block !important;
+    left: 35% !important;
+}
+
+.item {
+    margin:auto;
+    width: 200px;
 }

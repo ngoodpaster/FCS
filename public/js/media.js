@@ -1,10 +1,10 @@
-var address;
-if (screen.width > 480){
+var address = "192.168.4.1";
+/*if (screen.width > 480){
   address = "localhost";
 } else {
   // address = "172.20.72.2";
   address = "192.168.4.1";
-}
+}*/
 
 var imageCapture;
 var stream;
@@ -83,9 +83,16 @@ function capture(){
 
 function loadMedia(){
 
-  $("#photo-gallery").empty();
-
+//  $("#photo-gallery").empty();
+  $("#image-gallery").empty();
+  $("#image-carousel").empty();
   console.log('loading');
+
+  $('#myCarousel').on('slid.bs.carousel', function (e) {
+      var id = $('.item.active').data('slide-number');
+      $('#carousel-text').html($('#slide-content-'+id).html());
+  });
+
 
   $.get('https://' + address + ':8080/loadmedia', function(data){
     console.log(data);
@@ -99,8 +106,24 @@ function loadMedia(){
     
     for (var i = 0 ; i < filenames.length ; i++){
       console.log("hello")  
-      galleryTemplate(filenames[i],i);//blob, blobCount++);
+      galleryTemplate(i,filenames[i]);//blob, blobCount++);
     }
+
+    if (filenames.length == 0){
+      galleryTemplate(0, 'https://' + address + ':8080/js/no_media.png');
+    }
+    
+    $('[id^=carousel-selector-]').click(function () {
+        var id_selector = $(this).attr("id");
+        try {
+            var id = /-(\d+)$/.exec(id_selector)[1];
+            console.log(id_selector, id);
+            jQuery('#myCarousel').carousel(parseInt(id));
+        } catch (e) {
+            console.log('Regex failed!', e);
+        }
+    });
+
 
  });
 }
@@ -157,8 +180,21 @@ function loadMedia(){
 //   }
 // }
 
-function galleryTemplate(filename, i){
+function galleryTemplate(i,filename){
   console.log("generating template");
+    //$('[id^=carousel-selector-]').unbind('click');
+    $('[id^=carousel-selector-]').click(function () {
+    	var id_selector = $(this).attr("id");
+        try {
+            var id = /-(\d+)$/.exec(id_selector)[1];
+            console.log(id_selector, id);
+            jQuery('#myCarousel').carousel(parseInt(id));
+        } catch (e) {
+            console.log('Regex failed!', e);
+        }
+    });
+
+
   // create the imageUrl from the blob 
 
   // var urlCreator = window.URL || window.webkitURL;
@@ -167,23 +203,51 @@ function galleryTemplate(filename, i){
   //document.querySelector("#image").src = imageUrl;
 
   // create the container to hold the image 
+
+  var src = filename;
+  if(!filename.startsWith("https")){
+    src = "https://" + address + ":8080/media_files/" + endFolder + "/" + filename;
+  }
   var type;
-  var container = $("<div> </div>").addClass("galleryItem").attr("id", 'item' + i);;
+  var list_item = $("<li> </li>").addClass("col-xs-3");
+  var container;
+  //  var list_item;
+  
+  if(i == 0){
+           container = $("<div> </div>").addClass("item").addClass("active").attr("data-slide-number", i);
+  } else {
+          container = $("<div> </div>").addClass("item").attr("data-slide-number", i);
+  }
+
+  //var container = $("<div> </div>").addClass("galleryItem").attr("id", 'item' + i);;
   if (filename.endsWith('.png')){
     type = 'image';
     // set source to be the filename from server
-    container.append("<img class='galleryImg' src='https://" + address + ":8080/media_files/" + endFolder + '/' + filename + "'/>");
+    container.append("<img class='galleryImg' src='" + src + "' style='height: 90%; width: 100%; margin: auto;'>");
+    list_item.append("<a class='thumbnail' id='carousel-selector-" + i + "'> <img src='" + src + "' > </a>");
   } else {
     type = 'video';
     // set source to be the filename from server
-    var video = $("<video> </video>").addClass("galleryImg").attr("id", type + i).attr('controls','');
-    video.append("<source src='https://" + address + ":8080/media_files/" + endFolder + '/' + filename + "' type='video/webm'>");
+    var video = $("<video> </video>").addClass("galleryImg").attr("width","200").attr("id", type + i).attr('controls','');
+    video.append("<source src='" + src + "' type='video/webm' >");
     container.append(video);
+//    var video_list_item = $("<video> </video>");
+  //  video_list_item.append("<source src='" + src + "' type='video/webm' >");
+    list_item.append("<a id='carousel-selector-" + i + "'> <video width='60px'> <source src='" + src + "' type='video/webm'></video></a>");
+
     //container.append("<source src='https://" + address + ":8080/media/" + filename + "' type='video/mp4'>");
     //container.append("<source src='https://" + address + ":8080/media/" + filename + "' type='video/ogg'>");
   }
+  
+  $("#image-carousel").append(container);
+
+//  list_item = $("<li> </li>").addClass("col-xs-3");
+//  list_item.append("<a class='thumbnail' id='carousel-selector-" + i + "'> <img src='" + src + "' > </a>");
+
+  $("#image-gallery").append(list_item);
+
   // append the new photo to the photo gallery
-  $("#photo-gallery").append(container);
+  // $("#photo-gallery").append(container);
 }
 
 // function drawCanvas(canvas, img) {

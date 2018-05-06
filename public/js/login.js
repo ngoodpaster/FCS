@@ -80,13 +80,13 @@ function validate_create(){
 	console.log(obj);
 
 
-	var string;
-        if (screen.width > 480){
+	var string = "192.168.4.1";
+/*        if (screen.width > 480){
                 string = "localhost";
         } else {
                 string = "192.168.4.1";
                 // string = "172.20.72.2";
-        }
+        }*/
 
 
 	//Now we have the object, time to send it to the server
@@ -123,14 +123,14 @@ function validate_login(){
 
 	console.log(obj);
 
-	var string;
-	if (screen.width > 480){
+	var string = "192.168.4.1.";
+/*	if (screen.width > 480){
 		string = "localhost";
 	} else {
 		string = "192.168.4.1";
 		// string = "172.20.72.2";
 	}
-
+*/
 	//Now we have the object, time to send it to the server 
 
 	if (!error){
