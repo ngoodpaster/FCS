@@ -26,12 +26,13 @@ navigator.mediaDevices.getUserMedia({video: true, audio:true})
   .catch(error => console.error('getUserMedia() error:', error));
 
 function gotMedia(mediaStream) {
+  //conosle.log("got media");
   stream = mediaStream;
   document.querySelector('video').srcObject = mediaStream;
   //create the image capture object 
   const mediaStreamTrack = mediaStream.getVideoTracks()[0];
   imageCapture = new ImageCapture(mediaStreamTrack);
-  console.log(imageCapture);
+  //console.log(imageCapture);
 }
 
 

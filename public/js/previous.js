@@ -1,5 +1,6 @@
 var jobs;
 var convoFiles;
+var audios = new Map();
 
 var address = "192.168.4.1";
 /*if (screen.width > 480){
@@ -84,14 +85,48 @@ function createConversations(folder){
       convoFiles.pop();
       console.log(convoFiles);
       src1details = src1.split('_');
-      for (var i = 0 ; i < convoFiles.length; i++){
-        src2 = convoFiles[i];
-        src2details = src2.split('_');
-        if (src1details[2] == src2details[2] && src2details[0] == src1details[1] && src1details[0] == src2details[1]){
-          convoFiles[i] == convoFiles[convoFiles.length - 1]
-          convoFiles.pop();
-          conversationTemplate(folder,src1,src2, convoCount++)
-          break;
+      
+      if (src1details[1] == "callAll"){
+        conversationTemplate(folder,src1,"All Firefighters",convoCount++);
+      } else {
+		
+
+	var date1 = src1details[2].split('-');
+//	var date2 = src2details[2].split('-');
+	
+	var time1 = (parseInt(date1[4]) * 60) + parseInt(date1[5]);
+//	var time2 = (parseInt(date2[4]) * 60) + parseInt(date2[5]);
+	console.log("time1: " +  time1);
+	var rel_date1 = date1.slice(0,4);
+//	var rel_date2 = date2.slice(0,4);
+
+	rel_date1 = rel_date1.join();
+	console.log("rel date 1: " + rel_date1);
+// 	rel_date2 = rel_date2.join()
+	
+
+        for (var i = 0 ; i < convoFiles.length; i++){
+        
+          src2 = convoFiles[i];
+          src2details = src2.split('_');
+         
+          var date2 = src2details[2].split('-');
+	  var time2 = (parseInt(date2[4]) * 60) + parseInt(date2[5]);
+	  console.log("time2: " + time2);
+	  var rel_date2 = date2.slice(0,4);
+	  rel_date2 = rel_date2.join();
+          console.log("rel date 2: " + rel_date2);
+          if (src2details[0] == src1details[1] && src1details[0] == src2details[1]){
+	    if (rel_date1 == rel_date2){
+ 		if (Math.abs(time1 - time2) <= 2){ 
+	            convoFiles[i] == convoFiles[convoFiles.length - 1];
+	            convoFiles.pop();
+	            conversationTemplate(folder,src1,src2, convoCount++);
+	            break;
+          
+		}
+	    }
+	  }
         }
       } 
     }
@@ -221,6 +256,9 @@ function carouselTemplate(item_index, src_path){
 //var src2 = "ngoodpaster_sbooth_2-Aug-2018-16-54-53.wav";
 
 function conversationTemplate(folder,audio_src1, audio_src2, item_index){
+    if (audio_src2 == "All Firefighters"){
+      audio_src2 = "all" + item_index;
+    } 
     console.log(audio_src1);
     var container = $("<div> </div>").addClass("panel").addClass("panel-default");
     var panel = $("<div> </div>").addClass("panel-heading");
@@ -233,7 +271,12 @@ function conversationTemplate(folder,audio_src1, audio_src2, item_index){
     var date = date_info[1] + " " + date_info[0] + ", " + date_info[2];
     var time = date_info[3] + ":" + date_info[4];
 
-    var description = date + "    " + time + ": " + username[0] + " & " + username[1];
+    var toUsername = username[1];
+    if (toUsername == "callAll"){
+        toUsername = "All Firefighters"
+    }
+
+    var description = date + "    " + time + ": " + username[0] + " & " + toUsername;
     var header = $("<h4> </h4>").addClass("panel-title");
 
     var link = $("<a> </a>").attr("data-toggle", "collapse").attr("data-parent", "#accordian").attr("href", "#collapse" + item_index).text(description);
@@ -250,16 +293,24 @@ function conversationTemplate(folder,audio_src1, audio_src2, item_index){
     container.append(collapse);
 
     $("#accordion").append(container);
+    
+    if (audio_src2 != "all" + item_index){
+      document.getElementById(audio_src2).onplay = function(){
+          if (!audios.get(this.id)){
 
-    document.getElementById(audio_src2).onplay = function(){
-        var audio = new Audio('https://' + address + ':8080/conversations/' + folder + '/' + this.id);
-	console.log("playing second audio src"); 
-        audio.play();
-    }
+		  var audio = new Audio('https://' + address + ':8080/conversations/' + folder + '/' + this.id);
+  	 	  audios.set(this.id,audio);
 
-    document.getElementById(audio_src2).onpause = function(){
-        var audio = new Audio('https://' + address + ':8080/conversations/' + folder + '/' + this.id );
-        audio.pause();
+	  }
+          
+	  console.log("playing second audio src"); 
+          audios.get(this.id).play();
+      }
+
+      document.getElementById(audio_src2).onpause = function(){
+//          var audio = new Audio('https://' + address + ':8080/conversations/' + folder + '/' + this.id );
+          audios.get(this.id).pause();
+      }
     }
 }
 

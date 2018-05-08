@@ -60,7 +60,7 @@ var sdpConstraints = {
   offerToReceiveVideo: true
 };
 
-
+//load active personnel from server
 $.get('https://' + address + ':8080/loadpersonnel', function(data){
 	console.log(data);
 	myFireId = data.username;
@@ -77,7 +77,7 @@ $.get('https://' + address + ':8080/loadpersonnel', function(data){
 	getLocalStream();
 });
 
-
+//connect to socket room
 function connectToServer(){
 	room = 'foo';
 	// Could prompt for room name:
@@ -117,6 +117,7 @@ var callButton = document.getElementById("callButton");
 //callAll.addEventListener("click",callAllHandler);
 //function will initiate the connection to the other firefighter
 function callHandler(username){
+	console.log("call button clicked");
 	//THIS IS HOW IT WILL BE
 	//var calleeId = document.getElementById("calleeFireId").innerHTML;
 
@@ -185,7 +186,7 @@ socket.on('created', function(room) {
 //  isInitiator = true;
 });
 
-
+//when someone else has joined the room
 socket.on('join', function (data){
   	var room = data.room;
   	console.log(data);
@@ -216,14 +217,14 @@ socket.on('joined', function(data) {
   	console.log('joined: ' + data.room);
   	isChannelReady = true;
   	var room = data.room;
-  	console.log(data)
+  	console.log(data);
   	var users = data.connectedUsers;
   	connectedClients = [];
 
 	$("#team").empty();
 	
 	groupTemplate();
-	for (var i = 0 ; i < users.length ; i++){
+	for (var i =  0 ; i < users.length ; i++){
 		if (users[i].username != myFireId){
 			connectedClients[connectedClients.length] = users[i];
 			memberTemplate(users[i])
@@ -268,7 +269,7 @@ socket.on('incoming call', function(callIds, callToAll){
 socket.on('incoming offer', function(remoteDescription, callIds){
 	console.log("received an offer")
 	if (remoteDescription.type === 'offer'){
-		inCall = true;
+		//inCall = true;
 		var pcId = callIds.calleeUsername;
 		maybeStart(pcId);
 		//set remote streams description with the offer
@@ -317,7 +318,7 @@ function setLocalAndEmit(callIds,sessionDescription){
 socket.on('incoming answer', function(remoteDescription, callIds){
 	console.log("received an answer")
 	if (remoteDescription.type === 'answer'){
-		inCall = true;
+		//inCall = true;
 
 		//set the remote dewcription to be the answer
 		console.log("setting remote description")
@@ -475,6 +476,7 @@ function handleSuccess(stream) {
     };
 
     mediaRecorder.onstop = function(e) {
+      console.log("stopping convo recording");
       var audio_blob = new Blob(recordedChunks, {type: 'audio/webm'});
 
       blobToBase64(audio_blob, function(base64){ // encode
@@ -650,7 +652,7 @@ function requestTurn(turnURL) {
 //TO THE HTML DOM WHEN A REMOTE STREAM IS ADDED
 
 function handleRemoteStreamAdded(event) {
-
+	inCall = true;
 	console.log("remote stream added event")
 	console.log(event)
 
@@ -669,18 +671,22 @@ function handleRemoteStreamAdded(event) {
   	
 	remoteStream = event.stream;
 	remoteStreams.push(remoteStream);
-	console.log(remoteStream.getTracks()[0].enabled)
-  	var video = document.createElement("video");
-  	video.id = "remoteVideo" + counter++;
-  	video.srcObject = remoteStream;
-  	video.setAttribute("autoplay","");	
-
-  	if (muteAll){
-  		video.setAttribute("muted","muted")
-  	}
-
-  	videos.appendChild(video);
 	
+	if (!muteAll){
+		console.log(remoteStream.getTracks()[0].enabled)
+  		var video = document.createElement("video");
+  		video.id = "remoteVideo" + counter++;
+		video.width = 0;
+		video.height = 0;
+	 	video.srcObject = remoteStream;
+  		video.setAttribute("autoplay","");	
+	
+  		/*if (muteAll){
+  			video.setAttribute("muted","muted")
+  		}*/
+
+  		videos.appendChild(video);
+	}
 
 	if ($("#mySidenav").width() == 0){
 		console.log("mySidenav width = 0")
@@ -713,7 +719,10 @@ function handleRemoteStreamRemoved(event) {
 }
 
 function hangup() {
-
+	console.log("hanging up")
+	console.log("pcs connected to:");
+	var temp = pcs;
+	console.log(temp);
 	while(pcs.size != 0){
 		var pcIter = pcs.keys();
 		var pcId = pcIter.next().value;
@@ -740,12 +749,30 @@ function stop(pcId) {
   	pc.close();
   	pc = null;
   	pcs.delete(pcId)
+	
+	if (videos.childElementCount > 1){
+		videos.removeChild(videos.lastChild)
+	}
 
   	if (pcs.size == 0){
 		$("#callButton").css("background-color","green");
 		$("#callButton > span").html("Call");
 		inCall = false;
-  	}
+  		
+		/*$(".circle").unbind("click");
+		$(".circle.member").click(function(){
+			console.log("member clicked");
+			openNav(this.id);
+		});
+		
+		$("#call-all-logo").click(function(){
+	                console.log("in click handler for call all"); 
+        	        openNav("callAll");
+        	});*/
+
+
+	}
+	
 
 }
 
@@ -842,13 +869,15 @@ function memberTemplate(user){
 	// team member to get the relevant information for them. We can also just load all 
 	// the team data from the database and store it on the client side at the beginning so we don't have 
 	// to worry about making a bunch of calls to the database
+	console.log("creating memberTemplate");
 	var container = $("<div> </div>").addClass("circle").addClass("member").attr("id", user.username).css("border-color", getRandomColor());
 	container.append("<img src='/js/griffin.jpg' alt='firefighter' class='headshot' >")
 	var desc = $("<p> </p>").attr("id", user.username + "-name").text(user.firstName);
 	container.append(desc);
 	$("#team").append(container);
 
-	$("#" + user.username).click(function(){ 
+	$("#" + user.username).click(function(){
+		console.log("member pic clicked");
 		openNav(this.id);
 	});
 }
@@ -860,7 +889,8 @@ function groupTemplate(){
 	container.append(desc);
 	$("#team").append(container);
 
-	$("#call-all-logo").click(function(){ 
+	$("#call-all-logo").click(function(){
+	   	console.log("in click handler for call all"); 
 		openNav("callAll");
 	});
 }
@@ -897,14 +927,15 @@ function openNav(username) {
 	
 	if (username == "callAll"){
 	    $('.userAvatar').children('img').attr('src', '/js/group.png');
- 		$("#callButton").click(function(){
- 			callAllHandler();
- 		});
+      	    $("#callButton").click(function(){
+                callAllHandler();
+ 	    });
 	} else {
-    	$("#callButton").click(function(){
+            $('.userAvatar').children('img').attr('src', '/js/griffin.jpg');
+            $("#callButton").click(function(){
     		callHandler($("#username").text());
-    	});
-    }
+    	    });
+       }
 }
 
 function closeNav() {

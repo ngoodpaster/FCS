@@ -78,9 +78,9 @@ app.get('/media', function(req,res){
 
 app.get('/personnel', function(req,res){
   sess = req.session;
-
+  console.log("session username in personnel: " + sess.username);
   var fireId = req.query.username;
-
+  addConnectedUser(sess.username);
   
   console.log(fireId)
   //res.sendFile(path.join(__dirname + '/index.html'));
@@ -408,7 +408,7 @@ app.post('/validatelogin', function(req,res){
       if (result.length === 1){
         if (result[0].password === user.password){
           sess.username = user.username;
-          addConnectedUser(user.username);
+          //addConnectedUser(user.username);
           res.end('success');
         } else {
           res.end('fail');
