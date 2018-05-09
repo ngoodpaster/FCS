@@ -688,20 +688,25 @@ function handleRemoteStreamAdded(event) {
   		videos.appendChild(video);
 	}
 
-	if ($("#mySidenav").width() == 0){
+	var pcIter = pcs.keys();
+        var pcId = pcIter.next().value;
+
+	if ($("#mySidenav").width() != 0){
 		console.log("mySidenav width = 0")
-		var pcIter = pcs.keys();
-		var pcId = pcIter.next().value;
-		openNav(pcId);
+//		var pcIter = pcs.keys();
+//		var pcId = pcIter.next().value;
+		//openNav(pcId);
+		closeNav();
 	}
+	openNav(pcId);
 	
 	$("#callButton").css("background-color","red");
 	$("#callButton > span").html("End Call");
 
 	if (broadcast){
 		console.log("broadcasting")
-		var pcIter = pcs.keys();
-		var pcId = pcIter.next().value;
+		//var pcIter = pcs.keys();
+		//var pcId = pcIter.next().value;
 		$(pcId + "-name").text("Broadcast From: " + pcId);
 	}
 

@@ -80,10 +80,12 @@ function createConversations(folder){
     var convoCount = 0;
     console.log(convoFiles);
     while (convoFiles.length != 0){
+      var filelistsz = convoFiles.length;
+      console.log(filelistsz);
       src1 = convoFiles[convoFiles.length - 1];
-      console.log(src1);
+      //console.log(src1);
       convoFiles.pop();
-      console.log(convoFiles);
+      //console.log(convoFiles);
       src1details = src1.split('_');
       
       if (src1details[1] == "callAll"){
@@ -96,30 +98,31 @@ function createConversations(folder){
 	
 	var time1 = (parseInt(date1[4]) * 60) + parseInt(date1[5]);
 //	var time2 = (parseInt(date2[4]) * 60) + parseInt(date2[5]);
-	console.log("time1: " +  time1);
+//	console.log("time1: " +  time1);
 	var rel_date1 = date1.slice(0,4);
 //	var rel_date2 = date2.slice(0,4);
 
 	rel_date1 = rel_date1.join();
-	console.log("rel date 1: " + rel_date1);
+	//console.log("rel date 1: " + rel_date1);
 // 	rel_date2 = rel_date2.join()
 	
-
+	console.log(src1)
         for (var i = 0 ; i < convoFiles.length; i++){
         
           src2 = convoFiles[i];
+	  console.log(src2)
           src2details = src2.split('_');
          
           var date2 = src2details[2].split('-');
 	  var time2 = (parseInt(date2[4]) * 60) + parseInt(date2[5]);
-	  console.log("time2: " + time2);
+	  //console.log("time2: " + time2);
 	  var rel_date2 = date2.slice(0,4);
 	  rel_date2 = rel_date2.join();
-          console.log("rel date 2: " + rel_date2);
+          //console.log("rel date 2: " + rel_date2);
           if (src2details[0] == src1details[1] && src1details[0] == src2details[1]){
 	    if (rel_date1 == rel_date2){
  		if (Math.abs(time1 - time2) <= 2){ 
-	            convoFiles[i] == convoFiles[convoFiles.length - 1];
+	            convoFiles[i] = convoFiles[convoFiles.length - 1];
 	            convoFiles.pop();
 	            conversationTemplate(folder,src1,src2, convoCount++);
 	            break;
@@ -269,6 +272,9 @@ function conversationTemplate(folder,audio_src1, audio_src2, item_index){
     var date_info = username[2].split("-");
 
     var date = date_info[1] + " " + date_info[0] + ", " + date_info[2];
+    if (parseInt(date_info[4]) < 10){
+	date_info[4] = "0" + date_info[4];
+    }
     var time = date_info[3] + ":" + date_info[4];
 
     var toUsername = username[1];
@@ -276,7 +282,7 @@ function conversationTemplate(folder,audio_src1, audio_src2, item_index){
         toUsername = "All Firefighters"
     }
 
-    var description = date + "    " + time + ": " + username[0] + " & " + toUsername;
+    var description = date + "    " + time + " - " + username[0] + " & " + toUsername;
     var header = $("<h4> </h4>").addClass("panel-title");
 
     var link = $("<a> </a>").attr("data-toggle", "collapse").attr("data-parent", "#accordian").attr("href", "#collapse" + item_index).text(description);
