@@ -876,7 +876,7 @@ function memberTemplate(user){
 	// to worry about making a bunch of calls to the database
 	console.log("creating memberTemplate");
 	var container = $("<div> </div>").addClass("circle").addClass("member").attr("id", user.username).css("border-color", getRandomColor());
-	container.append("<img src='/js/griffin.jpg' alt='firefighter' class='headshot' >")
+	container.append("<img src='/images/" + user.username + ".jpg' alt='firefighter' class='headshot' >")
 	var desc = $("<p> </p>").attr("id", user.username + "-name").text(user.firstName);
 	container.append(desc);
 	$("#team").append(container);
@@ -889,7 +889,7 @@ function memberTemplate(user){
 
 function groupTemplate(){
 	var container = $("<div> </div>").addClass("circle").addClass("member").attr("id", "call-all-logo").css("border-color", "black");
-	container.append("<img src='/js/group.png' alt='firefighter' class='headshot' >")
+	container.append("<img src='/images/group.png' alt='firefighter' class='headshot' >")
 	var desc = $("<p> </p>").text("All");
 	container.append(desc);
 	$("#team").append(container);
@@ -931,12 +931,12 @@ function openNav(username) {
     $("#callButton").unbind('click');
 	
 	if (username == "callAll"){
-	    $('.userAvatar').children('img').attr('src', '/js/group.png');
+	    $('.userAvatar').children('img').attr('src', '/images/group.png');
       	    $("#callButton").click(function(){
                 callAllHandler();
  	    });
 	} else {
-            $('.userAvatar').children('img').attr('src', '/js/griffin.jpg');
+            $('.userAvatar').children('img').attr('src', '/images/' + username + '.jpg');
             $("#callButton").click(function(){
     		callHandler($("#username").text());
     	    });

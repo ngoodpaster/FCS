@@ -27,15 +27,21 @@
 	top: 0px;
 }
 
+#slider-thumbs{
+	background-color:#ccc !important;
+}
+
 #view{
 	position: absolute;
 	left: 0;
 	bottom: 0;
-	background-color: blue;
+	background-color: #000;
 	height: 100%;
 	width: 70%;
 	display: none;
 }
+
+
 
 #button-container{
 	position: absolute;
@@ -43,7 +49,7 @@
 	height: 100%;
 	width: 30%;
 }
-
+/*
 span.glyphicon {
 	margin: auto;
     font-size: 7em;
@@ -51,6 +57,7 @@ span.glyphicon {
     display: inline-block;
     left: 35%;
 }
+*/
 
 #capture-canvas{ 
 		position: absolute;
@@ -70,9 +77,12 @@ span.glyphicon {
 }
 
 #photo-icon{
-	width: 100%;
-	display: inline-block;
+	width: 70%;
+	/*display: inline-block;*/
 	margin: auto;
+	/*position: relative;
+	right: 100px;*/
+	margin: 0 auto;
 }
 
 .gallery
@@ -134,20 +144,51 @@ span.glyphicon {
 	height: 100%;
 	width: 100%;
 }
-
+/*
 span.glyphicon{
 	font-size: 1em;
-}
+}*/
 
 span.camerabuttons {
 	margin: auto !important;
     font-size: 7em !important;
-    width: 100px !important;
+    width: 70% !important;
     display: inline-block !important;
-    left: 35% !important;
+	color: white;
+    /*left: 35% !important;*/
 }
 
 .item {
     margin:auto;
     width: 200px;
 }
+
+/*
+.capture-button{
+	padding: 5px;
+	font-size: 24px;
+ 	text-align: center;
+	cursor: pointer;
+	outline: none;
+	color: #fff;
+	background-color:#ff2e2e;
+	border-radius: 15px;
+	box-shadow: 0 5px #999;
+}*/
+
+li{
+    width: 112px;
+    height: 82px;
+}
+a > video{
+    width: 80px;
+    height: 60px;
+/*    border: 1px solid white;
+    border-radius: 15px;
+*/
+}
+/*
+.glyphicon.glyphicon-photo-circle{
+	font-size:2em;
+}
+*/

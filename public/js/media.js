@@ -41,6 +41,14 @@ function gotMedia(mediaStream) {
 $("#capture-photo-button").click(capturePhoto);
 
 function capturePhoto(){
+	//document.getElementById("capture-photo-button").style.translate(0,3);
+        //document.getElementById("capture-photo-button").style.translate(0,-3);
+
+	$("#capture-photo-button").css("background-color","#B80000");
+        setTimeout(function(){ $("#capture-photo-button").css("background-color","#ff2e2e");},200);
+
+
+
 	//console.log("display value:" + $("#capture").attr('display'))
 	if($("#capture").css('display') == 'none'){
 		$("#view").css('display', 'none');
@@ -111,7 +119,7 @@ function loadMedia(){
     }
 
     if (filenames.length == 0){
-      galleryTemplate(0, 'https://' + address + ':8080/js/no_media.png');
+      galleryTemplate(0, 'https://' + address + ':8080/images/no_media.png');
     }
     
     $('[id^=carousel-selector-]').click(function () {
@@ -234,7 +242,7 @@ function galleryTemplate(i,filename){
     container.append(video);
 //    var video_list_item = $("<video> </video>");
   //  video_list_item.append("<source src='" + src + "' type='video/webm' >");
-    list_item.append("<a id='carousel-selector-" + i + "'> <video width='60px'> <source src='" + src + "' type='video/webm'></video></a>");
+    list_item.append("<div style='position:relative;'><a id='carousel-selector-" + i + "'> <video style='float:left; position:absolute; top:0; left:0;' width='60px'> <source src='" + src + "' type='video/webm'></video><span style='color:white; float:left; z-index:100; position:absolute; top:20; left:27; font-size:25px;' class='glyphicon glyphicon-play-circle'></span></a></div>");
 
     //container.append("<source src='https://" + address + ":8080/media/" + filename + "' type='video/mp4'>");
     //container.append("<source src='https://" + address + ":8080/media/" + filename + "' type='video/ogg'>");
@@ -272,9 +280,15 @@ let stopped = true;
 $("#capture-video-button").click(captureVideo);
 
 function captureVideo(){
+	$("#capture-video-button").css("background-color","#B80000");
+        //setTimeout(function(){ $("#capture-video-button").css("background-color","#ff2e2e");},200);
+
+
 	if(stopped == false){
+		$("#capture-video-button").css("background-color","#ff2e2e");
 		shouldStop = true;
 	} else if (stopped == true){
+		$("#capture-video-button").css("background-color","#B80000");
 		$( "#capture-video-button > span" ).removeClass( "glyphicon-facetime-video" ).addClass( "glyphicon-stop" );
 		//stopped = false;
 		handleSuccess(stream);
