@@ -41,11 +41,11 @@ C:\FCS>mkdir www_firefightercomm_com_ssl_cert
 
 Navigate into the root directory of the repo on your local machine and enter the following command into your command prompt
 ```
-C:\FCS>node app.js
+C:\FCS>node app_multiple.js
 ```
 If you have followed the steps correctly, and everything is installed properly, this will start the server and you should se the following message appear below the command you typed in:
 ```
-C:\FCS>node app.js
+C:\FCS>node app_multiple.js
 Server listening on: https://localhost:8080
 ```
 
@@ -62,7 +62,7 @@ To find the correct IP Address, find the section labeled "Wireless LAN adapter W
 
 After you go to that url, the browser will ask to use your microphone. Click Allow and you will be brought to the main screen.
 
-That's IT!!
+That's it!
 
 ## Acknowledgments
 
